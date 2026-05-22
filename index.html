@@ -93,11 +93,14 @@
         const addEntryButton = document.getElementById('add-entry-button');
         const entryFieldsContainer = document.getElementById('entry-fields-container');
 
+        // Wczytywanie zapisanych danych z localStorage na starcie
+        const savedEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
+
         function updateTotal() {
             totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
         }
 
-        addEntryButton.addEventListener('click', () => {
+        function createRow(initialValue = null, isLocked = false) {
             const row = document.createElement('div');
             row.className = 'entry-row';
 
@@ -110,6 +113,14 @@
             btn.className = 'add-amount-button';
             btn.textContent = 'Dodaj';
 
+            // Jeśli wczytujemy dane, blokujemy pole od razu
+            if (isLocked) {
+                input.value = initialValue;
+                input.disabled = true;
+                btn.disabled = true;
+                btn.textContent = '✓';
+            }
+
             const submit = () => {
                 const val = parseFloat(input.value);
                 if (!isNaN(val) && val !== 0) {
@@ -118,6 +129,11 @@
                     input.disabled = true;
                     btn.disabled = true;
                     btn.textContent = '✓';
+
+                    // Zapisywanie do localStorage
+                    const currentEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
+                    currentEntries.push(val);
+                    localStorage.setItem('moneyEntries', JSON.stringify(currentEntries));
                 }
             };
 
@@ -127,7 +143,18 @@
             row.appendChild(input);
             row.appendChild(btn);
             entryFieldsContainer.prepend(row);
-            input.focus();
+            if (!isLocked) input.focus();
+        }
+
+        // Inicjalizacja: dodaj zapisane wpisy do widoku i oblicz sumę
+        savedEntries.forEach(val => {
+            totalAmount += val;
+            createRow(val, true);
+        });
+        updateTotal();
+
+        addEntryButton.addEventListener('click', () => {
+            createRow();
         });
     </script>
 </body>
