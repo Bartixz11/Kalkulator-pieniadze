@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licznik Pieniędzy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        #total-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #28a745;
+        }
+        #add-entry-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 2em;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #add-entry-button:hover { background-color: #0056b3; }
+        #add-entry-button:active { transform: scale(0.95); }
+        .entry-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            width: 140px;
+        }
+        .add-amount-button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .add-amount-button:disabled {
+            background-color: #ccc;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Licznik Pieniędzy</h1>
+        <div id="total-display">Suma: 0.00 zł</div>
+        <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
+        <div id="entry-fields-container"></div>
+    </div>
+
+    <script>
+        let totalAmount = 0;
+        const totalDisplay = document.getElementById('total-display');
+        const addEntryButton = document.getElementById('add-entry-button');
+        const entryFieldsContainer = document.getElementById('entry-fields-container');
+
+        function updateTotal() {
+            totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
+        }
+
+        addEntryButton.addEventListener('click', () => {
+            const row = document.createElement('div');
+            row.className = 'entry-row';
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = '0.01';
+            input.placeholder = '0.00';
+
+            const btn = document.createElement('button');
+            btn.className = 'add-amount-button';
+            btn.textContent = 'Dodaj';
+
+            const submit = () => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val) && val !== 0) {
+                    totalAmount += val;
+                    updateTotal();
+                    input.disabled = true;
+                    btn.disabled = true;
+                    btn.textContent = '✓';
+                }
+            };
+
+            btn.addEventListener('click', submit);
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+
+            row.appendChild(input);
+            row.appendChild(btn);
+            entryFieldsContainer.prepend(row);
+            input.focus();
+        });
+    </script>
+</body>
+</html>
