@@ -109,6 +109,15 @@
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+        .history-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8em;
         }
         .hidden { display: none; }
     </style>
@@ -141,11 +150,17 @@
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
 
-        // Wczytywanie zapisanych danych z localStorage na starcie
-        const savedEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
+        // Wczytywanie i migracja danych (obsługa starego formatu danych)
+        let raw = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
+        let savedEntries = raw.map(e => typeof e === 'object' ? e : { id: Date.now() + Math.random(), val: e });
+        localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
 
         function updateTotal() {
             totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
         }
 
         function showTab(tabName) {
@@ -160,19 +175,53 @@
         }
 
         function renderHistory() {
-            const entries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
-            historyList.innerHTML = entries.length === 0 ? '<li>Brak wpisów</li>' : '';
-            entries.slice().reverse().forEach((val, index) => {
+            historyList.innerHTML = savedEntries.length === 0 ? '<li>Brak wpisów</li>' : '';
+            savedEntries.slice().reverse().forEach((entry, index) => {
+                const originalIndex = savedEntries.length - 1 - index;
                 const li = document.createElement('li');
                 li.className = 'history-item';
-                li.innerHTML = `<span>Wpis #${entries.length - index}</span> <strong>${val.toFixed(2)} zł</strong>`;
+                li.innerHTML = `
+                    <span><strong>${entry.val.toFixed(2)} zł</strong></span>
+                    <div class="history-actions">
+                        <button class="add-amount-button btn-small" style="background-color: #ffc107" onclick="editEntry(${originalIndex})">Edytuj</button>
+                        <button class="add-amount-button btn-small" style="background-color: #dc3545" onclick="deleteEntry(${originalIndex})">Usuń</button>
+                    </div>
+                `;
                 historyList.appendChild(li);
             });
         }
 
-        function createRow(initialValue = null, isLocked = false) {
+        window.deleteEntry = (index) => {
+            totalAmount -= savedEntries[index].val;
+            savedEntries.splice(index, 1);
+            saveToStorage();
+            updateTotal();
+            renderHistory();
+            refreshStartView();
+        };
+
+        window.editEntry = (index) => {
+            const newVal = prompt("Podaj nową kwotę:", savedEntries[index].val);
+            const parsed = parseFloat(newVal);
+            if (!isNaN(parsed)) {
+                totalAmount = totalAmount - savedEntries[index].val + parsed;
+                savedEntries[index].val = parsed;
+                saveToStorage();
+                updateTotal();
+                renderHistory();
+                refreshStartView();
+            }
+        };
+
+        function refreshStartView() {
+            entryFieldsContainer.innerHTML = '';
+            savedEntries.forEach(entry => createRow(entry.val, true, entry.id));
+        }
+
+        function createRow(initialValue = null, isLocked = false, id = null) {
             const row = document.createElement('div');
             row.className = 'entry-row';
+            if (id) row.dataset.id = id;
 
             const input = document.createElement('input');
             input.type = 'number';
@@ -182,28 +231,56 @@
             const btn = document.createElement('button');
             btn.className = 'add-amount-button';
             btn.textContent = 'Dodaj';
+            let currentVal = initialValue || 0;
 
             // Jeśli wczytujemy dane, blokujemy pole od razu
             if (isLocked) {
                 input.value = initialValue;
                 input.disabled = true;
-                btn.disabled = true;
-                btn.textContent = '✓';
+                btn.textContent = 'Edytuj';
+                btn.style.backgroundColor = '#ffc107';
             }
 
+            const delBtn = document.createElement('button');
+            delBtn.className = 'add-amount-button';
+            delBtn.textContent = '🗑️';
+            delBtn.style.backgroundColor = '#dc3545';
+            delBtn.onclick = () => {
+                if (isLocked) {
+                    const idx = savedEntries.findIndex(e => e.id === id);
+                    if (idx > -1) deleteEntry(idx);
+                } else {
+                    row.remove();
+                }
+            };
+
             const submit = () => {
+                if (btn.textContent === 'Edytuj') {
+                    input.disabled = false;
+                    btn.textContent = 'OK';
+                    btn.style.backgroundColor = '#28a745';
+                    totalAmount -= currentVal;
+                    const idx = savedEntries.findIndex(e => e.id === id);
+                    if (idx > -1) savedEntries.splice(idx, 1);
+                    updateTotal();
+                    input.focus();
+                    return;
+                }
+
                 const val = parseFloat(input.value);
                 if (!isNaN(val) && val !== 0) {
                     totalAmount += val;
+                    currentVal = val;
                     updateTotal();
                     input.disabled = true;
-                    btn.disabled = true;
-                    btn.textContent = '✓';
+                    btn.textContent = 'Edytuj';
+                    btn.style.backgroundColor = '#ffc107';
+                    isLocked = true;
 
-                    // Zapisywanie do localStorage
-                    const currentEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
-                    currentEntries.push(val);
-                    localStorage.setItem('moneyEntries', JSON.stringify(currentEntries));
+                    const newId = id || Date.now() + Math.random();
+                    id = newId;
+                    savedEntries.push({ id: newId, val: val });
+                    saveToStorage();
                     if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
                 }
             };
@@ -213,14 +290,15 @@
 
             row.appendChild(input);
             row.appendChild(btn);
+            row.appendChild(delBtn);
             entryFieldsContainer.prepend(row);
             if (!isLocked) input.focus();
         }
 
         // Inicjalizacja: dodaj zapisane wpisy do widoku i oblicz sumę
-        savedEntries.forEach(val => {
-            totalAmount += val;
-            createRow(val, true);
+        savedEntries.forEach(entry => {
+            totalAmount += entry.val;
+            createRow(entry.val, true, entry.id);
         });
         updateTotal();
 
