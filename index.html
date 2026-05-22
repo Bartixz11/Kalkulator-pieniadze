@@ -23,6 +23,26 @@
             width: 90%;
             max-width: 400px;
         }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            color: #666;
+            transition: color 0.3s, border-bottom 0.3s;
+        }
+        .tab-button.active {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            font-weight: bold;
+        }
         h1 {
             color: #0056b3;
             margin-bottom: 20px;
@@ -77,14 +97,41 @@
             background-color: #ccc;
             cursor: default;
         }
+        .history-list {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Licznik Pieniędzy</h1>
-        <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
-        <div id="total-display">Suma: 0.00 zł</div>
-        <div id="entry-fields-container"></div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('start')">Start</button>
+            <button class="tab-button" onclick="showTab('history')">Historia</button>
+        </div>
+
+        <div id="view-start">
+            <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
+            <div id="total-display">Suma: 0.00 zł</div>
+            <div id="entry-fields-container"></div>
+        </div>
+
+        <div id="view-history" class="hidden">
+            <h3>Historia wpisów</h3>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
     </div>
 
     <script>
@@ -92,12 +139,35 @@
         const totalDisplay = document.getElementById('total-display');
         const addEntryButton = document.getElementById('add-entry-button');
         const entryFieldsContainer = document.getElementById('entry-fields-container');
+        const historyList = document.getElementById('history-list');
 
         // Wczytywanie zapisanych danych z localStorage na starcie
         const savedEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
 
         function updateTotal() {
             totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
+        }
+
+        function showTab(tabName) {
+            document.getElementById('view-start').classList.toggle('hidden', tabName !== 'start');
+            document.getElementById('view-history').classList.toggle('hidden', tabName !== 'history');
+            
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tabName));
+            });
+            
+            if (tabName === 'history') renderHistory();
+        }
+
+        function renderHistory() {
+            const entries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
+            historyList.innerHTML = entries.length === 0 ? '<li>Brak wpisów</li>' : '';
+            entries.slice().reverse().forEach((val, index) => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `<span>Wpis #${entries.length - index}</span> <strong>${val.toFixed(2)} zł</strong>`;
+                historyList.appendChild(li);
+            });
         }
 
         function createRow(initialValue = null, isLocked = false) {
@@ -134,6 +204,7 @@
                     const currentEntries = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
                     currentEntries.push(val);
                     localStorage.setItem('moneyEntries', JSON.stringify(currentEntries));
+                    if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
                 }
             };
 
