@@ -22,6 +22,7 @@
             text-align: center;
             width: 90%;
             max-width: 400px;
+            position: relative; /* Umożliwia pozycjonowanie przycisku odświeżania */
         }
         .tabs {
             display: flex;
@@ -227,11 +228,34 @@
             border: 2px solid #ddd;
             margin-bottom: 20px;
         }
+        .refresh-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .refresh-btn:hover {
+            background-color: #e2e6ea;
+            transform: rotate(90deg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="container">
+        <button class="refresh-btn" onclick="location.reload()" title="Odśwież aplikację">🔄</button>
         <h1>Licznik Pieniędzy</h1>
         
         <!-- Ekran blokady PIN -->
