@@ -83,7 +83,7 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 1em;
-            width: 140px;
+            flex-grow: 1; /* Allow inputs to grow */
         }
         .add-amount-button {
             padding: 10px 15px;
@@ -119,27 +119,115 @@
             padding: 5px 10px;
             font-size: 0.8em;
         }
-        .hidden { display: none; }
+
+        .selection-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+
+        .set-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .set-option:hover {
+            transform: scale(1.1);
+        }
+        .circle-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            cursor: pointer;
+        }
+        .set-label {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* Animation for new rows */
+        .entry-row {
+            display: flex;
+            flex-direction: column; /* Changed to column for better stacking of inputs */
+            gap: 8px; /* Smaller gap for vertical stacking */
+            margin-bottom: 12px;
+            align-items: center; /* Center items horizontally */
+            max-height: 0; /* Initial state for animation */
+            opacity: 0; /* Initial state for animation */
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+        }
+        .entry-row.show {
+            max-height: 150px; /* Sufficient height for all elements in the row */
+            opacity: 1;
+        }
+
+        .entry-row .input-group { /* Group inputs and buttons horizontally */
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%; /* Take full width of parent column */
+            flex-wrap: wrap; /* Allow wrapping if too wide */
+        }
+
+        .entry-row input[type="date"],
+        .entry-row input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            flex-grow: 1; /* Allow inputs to grow */
+            min-width: 100px; /* Minimum width for inputs */
+            max-width: 150px; /* Max width for inputs */
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Licznik Pieniędzy</h1>
         
-        <div class="tabs">
-            <button class="tab-button active" onclick="showTab('start')">Start</button>
-            <button class="tab-button" onclick="showTab('history')">Historia</button>
+        <!-- Menu wyboru - znika po kliknięciu -->
+        <div id="view-selection" class="selection-menu">
+            <div class="set-option" onclick="openApp('Komputer')">
+                <button class="circle-btn">💻</button>
+                <span class="set-label">Komputer</span>
+            </div>
         </div>
 
-        <div id="view-start">
-            <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
-            <div id="total-display">Suma: 0.00 zł</div>
-            <div id="entry-fields-container"></div>
-        </div>
+        <!-- Główna zawartość - pojawia się po kliknięciu -->
+        <div id="app-content" class="hidden">
+            <h2 id="current-set-title" style="color: #666; margin-bottom: 20px;"></h2>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('start')">Start</button>
+                <button class="tab-button" onclick="showTab('history')">Historia</button>
+            </div>
 
-        <div id="view-history" class="hidden">
-            <h3>Historia wpisów</h3>
-            <ul id="history-list" class="history-list"></ul>
+            <div id="view-start"> <!-- Domyślnie widoczna -->
+                <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
+                <div id="total-display">Suma: 0.00 zł</div>
+                <div id="entry-fields-container"></div>
+            </div>
+
+            <div id="view-history" class="hidden"> <!-- Domyślnie ukryta -->
+                <h3>Historia wpisów</h3>
+                <ul id="history-list" class="history-list"></ul>
+            </div>
         </div>
     </div>
 
@@ -159,19 +247,41 @@
             totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
         }
 
+        // Funkcja otwierająca konkretny zestaw
+        window.openApp = (setName) => {
+            // Ukrywamy menu wyboru
+            document.getElementById('view-selection').classList.add('hidden');
+            // Pokazujemy aplikację
+            document.getElementById('app-content').classList.remove('hidden');
+            // Ustawiamy tytuł zestawu
+            document.getElementById('current-set-title').textContent = "Zestaw: " + setName;
+            
+            showTab('start'); // Domyślnie otwieramy zakładkę 'Start'
+        };
+
         function saveToStorage() {
             localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
         }
 
         function showTab(tabName) {
-            document.getElementById('view-start').classList.toggle('hidden', tabName !== 'start');
-            document.getElementById('view-history').classList.toggle('hidden', tabName !== 'history');
-            
+            // Dezaktywuj wszystkie przyciski zakładek
             document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tabName));
+                btn.classList.remove('active');
             });
-            
-            if (tabName === 'history') renderHistory();
+
+            // Aktywuj kliknięty przycisk zakładki
+            document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
+
+            // Ukryj wszystkie widoki
+            document.getElementById('view-start').classList.add('hidden');
+            document.getElementById('view-history').classList.add('hidden');
+
+            // Pokaż wybrany widok
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+            if (tabName === 'history') {
+                renderHistory(); // Odśwież historię tylko, gdy przechodzimy do zakładki historii
+            }
         }
 
         function renderHistory() {
@@ -192,20 +302,36 @@
         }
 
         window.deleteEntry = (index) => {
-            totalAmount -= savedEntries[index].val;
-            savedEntries.splice(index, 1);
-            saveToStorage();
-            updateTotal();
-            renderHistory();
-            refreshStartView();
+            const entry = savedEntries[index];
+            // Znajdź wiersz w DOM, aby go animować
+            const row = entryFieldsContainer.querySelector(`.entry-row[data-id="${entry.id}"]`);
+            
+            const performDelete = () => {
+                totalAmount -= entry.val;
+                savedEntries.splice(index, 1);
+                saveToStorage();
+                updateTotal();
+                renderHistory();
+                if (row) row.remove();
+                else refreshStartView();
+            };
+
+            if (row) animateRowOut(row, performDelete);
+            else performDelete();
         };
 
         window.editEntry = (index) => {
-            const newVal = prompt("Podaj nową kwotę:", savedEntries[index].val);
-            const parsed = parseFloat(newVal);
-            if (!isNaN(parsed)) {
-                totalAmount = totalAmount - savedEntries[index].val + parsed;
-                savedEntries[index].val = parsed;
+            const entry = savedEntries[index];
+            const newAmount = prompt("Podaj nową kwotę:", entry.val);
+            const newDate = prompt("Podaj nową datę (YYYY-MM-DD):", entry.date);
+            const newSource = prompt("Podaj nowe źródło (opcjonalnie):", entry.source);
+
+            const parsedAmount = parseFloat(newAmount);
+            if (!isNaN(parsedAmount) && newDate) {
+                totalAmount = totalAmount - entry.val + parsedAmount;
+                entry.val = parsedAmount;
+                entry.date = newDate;
+                entry.source = newSource;
                 saveToStorage();
                 updateTotal();
                 renderHistory();
@@ -213,30 +339,57 @@
             }
         };
 
-        function refreshStartView() {
-            entryFieldsContainer.innerHTML = '';
-            savedEntries.forEach(entry => createRow(entry.val, true, entry.id));
+        // Pomocnicza funkcja do gładkiego usuwania wiersza
+        function animateRowOut(rowElement, callback) {
+            rowElement.classList.remove('show');
+            rowElement.addEventListener('transitionend', () => {
+                if (callback) callback();
+            }, { once: true });
         }
 
-        function createRow(initialValue = null, isLocked = false, id = null) {
+        function refreshStartView() {
+            entryFieldsContainer.innerHTML = '';
+            addEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk + jest widoczny
+            savedEntries.forEach(entry => createRow(entry, true)); // Pass the whole entry object
+        }
+
+        function createRow(initialEntry = null, isLocked = false) { // initialEntry is an object {val, date, source, id}
             const row = document.createElement('div');
             row.className = 'entry-row';
-            if (id) row.dataset.id = id;
+            if (initialEntry && initialEntry.id) row.dataset.id = initialEntry.id;
 
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.step = '0.01';
-            input.placeholder = '0.00';
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+
+            const amountInput = document.createElement('input');
+            amountInput.type = 'number';
+            amountInput.step = '0.01';
+            amountInput.placeholder = 'Kwota';
+            amountInput.inputMode = 'decimal'; // Klawiatura numeryczna z kropką/przecinkiem
+
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.inputMode = 'numeric'; // Klawiatura numeryczna dla daty
+            dateInput.valueAsDate = new Date(); // Default to today
+            
+            const sourceInput = document.createElement('input');
+            sourceInput.type = 'text';
+            sourceInput.placeholder = 'Źródło (opcjonalnie)';
 
             const btn = document.createElement('button');
             btn.className = 'add-amount-button';
             btn.textContent = 'Dodaj';
-            let currentVal = initialValue || 0;
+            let currentVal = initialEntry ? initialEntry.val : 0;
 
             // Jeśli wczytujemy dane, blokujemy pole od razu
             if (isLocked) {
-                input.value = initialValue;
-                input.disabled = true;
+                amountInput.value = initialEntry.val;
+                dateInput.value = initialEntry.date || new Date().toISOString().split('T')[0];
+                sourceInput.value = initialEntry.source || '';
+                
+                amountInput.disabled = true;
+                dateInput.disabled = true;
+                sourceInput.disabled = true;
                 btn.textContent = 'Edytuj';
                 btn.style.backgroundColor = '#ffc107';
             }
@@ -247,62 +400,107 @@
             delBtn.style.backgroundColor = '#dc3545';
             delBtn.onclick = () => {
                 if (isLocked) {
-                    const idx = savedEntries.findIndex(e => e.id === id);
+                    const idx = savedEntries.findIndex(e => e.id === (initialEntry ? initialEntry.id : null));
                     if (idx > -1) deleteEntry(idx);
                 } else {
-                    row.remove();
+                    animateRowOut(row, () => { row.remove(); });
                 }
             };
 
+            let currentId = initialEntry ? initialEntry.id : null;
+
             const submit = () => {
                 if (btn.textContent === 'Edytuj') {
-                    input.disabled = false;
+                    // Usunięto ukrywanie przycisku +, aby był zawsze widoczny
+                    // addEntryButton.classList.add('hidden'); 
+                    amountInput.disabled = false;
+                    dateInput.disabled = false;
+                    sourceInput.disabled = false;
                     btn.textContent = 'OK';
                     btn.style.backgroundColor = '#28a745';
                     totalAmount -= currentVal;
-                    const idx = savedEntries.findIndex(e => e.id === id);
+                    const idx = savedEntries.findIndex(e => e.id === currentId);
                     if (idx > -1) savedEntries.splice(idx, 1);
                     updateTotal();
-                    input.focus();
+                    amountInput.focus();
                     return;
                 }
 
-                const val = parseFloat(input.value);
-                if (!isNaN(val) && val !== 0) {
+                const val = parseFloat(amountInput.value);
+                const date = dateInput.value;
+                const source = sourceInput.value.trim();
+
+                if (!isNaN(val) && val !== 0 && date) {
                     totalAmount += val;
                     currentVal = val;
+                    row.dataset.id = currentId || Date.now() + Math.random();
                     updateTotal();
-                    input.disabled = true;
+                    amountInput.disabled = true;
+                    dateInput.disabled = true;
+                    sourceInput.disabled = true;
                     btn.textContent = 'Edytuj';
                     btn.style.backgroundColor = '#ffc107';
                     isLocked = true;
 
-                    const newId = id || Date.now() + Math.random();
-                    id = newId;
-                    savedEntries.push({ id: newId, val: val });
+                    const newId = row.dataset.id;
+                    currentId = newId;
+                    savedEntries.push({ id: newId, val: val, date: date, source: source });
                     saveToStorage();
+                    // Usunięto pokazywanie przycisku +, ponieważ jest zawsze widoczny
                     if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
+                }
+                else {
+                    alert('Proszę wprowadzić prawidłową kwotę i datę.');
                 }
             };
 
             btn.addEventListener('click', submit);
-            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+            amountInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+            dateInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+            sourceInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
 
-            row.appendChild(input);
-            row.appendChild(btn);
-            row.appendChild(delBtn);
+
+            inputGroup.appendChild(amountInput);
+            inputGroup.appendChild(dateInput);
+            inputGroup.appendChild(sourceInput);
+            inputGroup.appendChild(btn);
+            inputGroup.appendChild(delBtn);
+            
+            row.appendChild(inputGroup); // Append the input group to the row
+
             entryFieldsContainer.prepend(row);
-            if (!isLocked) input.focus();
+
+            // Animation for new rows
+            if (!isLocked) {
+                // Use a small timeout to allow the browser to render the initial state (max-height: 0)
+                setTimeout(() => {
+                    row.classList.add('show');
+                }, 10);
+                amountInput.focus();
+            }
         }
 
         // Inicjalizacja: dodaj zapisane wpisy do widoku i oblicz sumę
         savedEntries.forEach(entry => {
             totalAmount += entry.val;
-            createRow(entry.val, true, entry.id);
+            createRow(entry, true);
         });
         updateTotal();
 
         addEntryButton.addEventListener('click', () => {
+            const activeInput = entryFieldsContainer.querySelector('.entry-row input:not(:disabled)');
+            
+            if (activeInput) {
+                const activeRow = activeInput.closest('.entry-row');
+                // Jeśli to nowy wiersz (nie ma jeszcze ID w bazie), kliknięcie + go usuwa (chowa dodawanie)
+                if (!activeRow.dataset.id) {
+                    animateRowOut(activeRow, () => { activeRow.remove(); });
+                } else {
+                    // Jeśli edytujemy stary wiersz, tylko ustawiamy na nim focus
+                    activeInput.focus();
+                }
+                return;
+            }
             createRow();
         });
     </script>
