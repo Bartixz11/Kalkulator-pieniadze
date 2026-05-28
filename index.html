@@ -17,8 +17,8 @@
         .container {
             background-color: #fff;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px; /* Slightly more rounded */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Deeper, softer shadow */
             text-align: center;
             width: 90%;
             max-width: 400px;
@@ -38,10 +38,13 @@
             color: #666;
             transition: color 0.3s, border-bottom 0.3s;
         }
+        .tab-button:hover { color: #007bff; }
         .tab-button.active {
             color: #007bff;
             border-bottom: 3px solid #007bff;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for active tab */
+            border-radius: 5px 5px 0 0; /* Rounded top corners */
         }
         h1 {
             color: #0056b3;
@@ -63,25 +66,27 @@
             font-size: 2em;
             cursor: pointer;
             margin-bottom: 20px;
-            transition: background-color 0.3s, transform 0.1s;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: auto;
             margin-right: auto;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Initial shadow for + button */
+
         }
         #add-entry-button:hover { background-color: #0056b3; }
         #add-entry-button:active { transform: scale(0.95); }
-        .entry-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-            justify-content: center;
-        }
         input[type="number"] {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
+            /* Modernistic input focus */
+            &:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            }
             font-size: 1em;
             flex-grow: 1; /* Allow inputs to grow */
         }
@@ -91,6 +96,7 @@
             color: white;
             border: none;
             border-radius: 6px;
+            transition: background-color 0.3s, transform 0.1s;
             cursor: pointer;
         }
         .add-amount-button:disabled {
@@ -110,6 +116,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-radius: 8px; /* Rounded corners */
+            margin-bottom: 8px; /* Space between items */
+            background-color: #fdfdfd; /* Slightly off-white background */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .history-item:hover {
+            transform: translateY(-2px); /* Lift effect on hover */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* More pronounced shadow on hover */
         }
         .history-actions {
             display: flex;
@@ -149,7 +164,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); /* Deeper shadow */
             cursor: pointer;
         }
         .set-label {
@@ -157,6 +172,9 @@
             font-weight: bold;
             color: #555;
             font-size: 1.1em;
+        }
+        .set-option:hover .circle-btn {
+            box-shadow: 0 12px 25px rgba(0, 123, 255, 0.5); /* Even deeper on hover */
         }
 
         /* Animation for new rows */
@@ -190,9 +208,24 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 1em;
+            /* Modernistic input focus */
+            &:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            }
             flex-grow: 1; /* Allow inputs to grow */
             min-width: 100px; /* Minimum width for inputs */
             max-width: 150px; /* Max width for inputs */
+        }
+        #pin-input {
+            font-size: 2em;
+            text-align: center;
+            width: 150px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            margin-bottom: 20px;
         }
         .hidden { display: none !important; }
     </style>
@@ -201,8 +234,15 @@
     <div class="container">
         <h1>Licznik Pieniędzy</h1>
         
-        <!-- Menu wyboru - znika po kliknięciu -->
-        <div id="view-selection" class="selection-menu">
+        <!-- Ekran blokady PIN -->
+        <div id="view-pin" class="selection-menu">
+            <h2 style="color: #0056b3; margin-bottom: 20px;">🔒 Podaj PIN</h2>
+            <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****">
+            <button class="add-amount-button" style="width: 150px; font-weight: bold;" onclick="checkPin()">Wejdź</button>
+        </div>
+
+        <!-- Menu wyboru - ukryte na starcie -->
+        <div id="view-selection" class="selection-menu hidden">
             <div class="set-option" onclick="openApp('Komputer')">
                 <button class="circle-btn">💻</button>
                 <span class="set-label">Komputer</span>
@@ -238,6 +278,23 @@
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
 
+        // Logika sprawdzania PINu
+        window.checkPin = () => {
+            const pinInput = document.getElementById('pin-input');
+            if (pinInput.value === '1109') { // Tutaj możesz zmienić swój PIN
+                document.getElementById('view-pin').classList.add('hidden');
+                document.getElementById('view-selection').classList.remove('hidden');
+            } else {
+                alert('Błędny PIN!');
+                pinInput.value = '';
+                pinInput.focus();
+            }
+        };
+
+        document.getElementById('pin-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPin();
+        });
+
         // Wczytywanie i migracja danych (obsługa starego formatu danych)
         let raw = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
         let savedEntries = raw.map(e => typeof e === 'object' ? e : { id: Date.now() + Math.random(), val: e });
@@ -258,6 +315,31 @@
             
             showTab('start'); // Domyślnie otwieramy zakładkę 'Start'
         };
+
+        // Helper to format YYYY-MM-DD to DD MM RRRR
+        function formatDateForDisplay(isoDateString) {
+            if (!isoDateString) return '';
+            const parts = isoDateString.split('-');
+            if (parts.length === 3) {
+                return `${parts[2].padStart(2, '0')} ${parts[1].padStart(2, '0')} ${parts[0]}`;
+            }
+            return isoDateString; // Fallback
+        }
+
+        // Helper to parse DD MM RRRR to YYYY-MM-DD
+        function parseDateFromDisplay(displayDateString) {
+            if (!displayDateString) return null; // Return null for invalid date
+            const parts = displayDateString.split(' ');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const year = parseInt(parts[2]);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+                    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                }
+            }
+            return null; // Indicate invalid date
+        }
 
         function saveToStorage() {
             localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
@@ -291,7 +373,7 @@
                 const li = document.createElement('li');
                 li.className = 'history-item';
                 li.innerHTML = `
-                    <span><strong>${entry.val.toFixed(2)} zł</strong></span>
+                    <span><strong>${entry.val.toFixed(2)} zł</strong><br><small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
                     <div class="history-actions">
                         <button class="add-amount-button btn-small" style="background-color: #ffc107" onclick="editEntry(${originalIndex})">Edytuj</button>
                         <button class="add-amount-button btn-small" style="background-color: #dc3545" onclick="deleteEntry(${originalIndex})">Usuń</button>
@@ -302,6 +384,7 @@
         }
 
         window.deleteEntry = (index) => {
+            if (!confirm("Czy na pewno chcesz usunąć ten wpis?")) return;
             const entry = savedEntries[index];
             // Znajdź wiersz w DOM, aby go animować
             const row = entryFieldsContainer.querySelector(`.entry-row[data-id="${entry.id}"]`);
@@ -322,12 +405,13 @@
 
         window.editEntry = (index) => {
             const entry = savedEntries[index];
-            const newAmount = prompt("Podaj nową kwotę:", entry.val);
-            const newDate = prompt("Podaj nową datę (YYYY-MM-DD):", entry.date);
+            const newAmount = prompt("Podaj nową kwotę:", entry.val); // Keep prompt for amount simple
+            const newDateDisplay = prompt("Podaj nową datę (DD MM RRRR):", formatDateForDisplay(entry.date));
             const newSource = prompt("Podaj nowe źródło (opcjonalnie):", entry.source);
 
             const parsedAmount = parseFloat(newAmount);
-            if (!isNaN(parsedAmount) && newDate) {
+            const newDate = parseDateFromDisplay(newDateDisplay); // Parse display format to ISO
+            if (!isNaN(parsedAmount) && newDate) { // Check if newDate is not null
                 totalAmount = totalAmount - entry.val + parsedAmount;
                 entry.val = parsedAmount;
                 entry.date = newDate;
@@ -336,6 +420,9 @@
                 updateTotal();
                 renderHistory();
                 refreshStartView();
+            }
+            else {
+                alert('Proszę wprowadzić prawidłową kwotę i datę (DD MM RRRR).');
             }
         };
 
@@ -350,7 +437,7 @@
         function refreshStartView() {
             entryFieldsContainer.innerHTML = '';
             addEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk + jest widoczny
-            savedEntries.forEach(entry => createRow(entry, true)); // Pass the whole entry object
+            // Usunięto tworzenie wierszy dla zapisanych wpisów na stronie Start, aby była czysta.
         }
 
         function createRow(initialEntry = null, isLocked = false) { // initialEntry is an object {val, date, source, id}
@@ -368,9 +455,9 @@
             amountInput.inputMode = 'decimal'; // Klawiatura numeryczna z kropką/przecinkiem
 
             const dateInput = document.createElement('input');
-            dateInput.type = 'date';
+            dateInput.type = 'text';
             dateInput.inputMode = 'numeric'; // Klawiatura numeryczna dla daty
-            dateInput.valueAsDate = new Date(); // Default to today
+            dateInput.value = formatDateForDisplay(new Date().toISOString().split('T')[0]); // Domyślna dzisiejsza data w formacie DD MM RRRR
             
             const sourceInput = document.createElement('input');
             sourceInput.type = 'text';
@@ -384,7 +471,7 @@
             // Jeśli wczytujemy dane, blokujemy pole od razu
             if (isLocked) {
                 amountInput.value = initialEntry.val;
-                dateInput.value = initialEntry.date || new Date().toISOString().split('T')[0];
+                dateInput.value = formatDateForDisplay(initialEntry.date || new Date().toISOString().split('T')[0]);
                 sourceInput.value = initialEntry.source || '';
                 
                 amountInput.disabled = true;
@@ -392,20 +479,8 @@
                 sourceInput.disabled = true;
                 btn.textContent = 'Edytuj';
                 btn.style.backgroundColor = '#ffc107';
+                row.classList.add('show'); // Pokazuje wiersz od razu przy wczytywaniu
             }
-
-            const delBtn = document.createElement('button');
-            delBtn.className = 'add-amount-button';
-            delBtn.textContent = '🗑️';
-            delBtn.style.backgroundColor = '#dc3545';
-            delBtn.onclick = () => {
-                if (isLocked) {
-                    const idx = savedEntries.findIndex(e => e.id === (initialEntry ? initialEntry.id : null));
-                    if (idx > -1) deleteEntry(idx);
-                } else {
-                    animateRowOut(row, () => { row.remove(); });
-                }
-            };
 
             let currentId = initialEntry ? initialEntry.id : null;
 
@@ -427,10 +502,11 @@
                 }
 
                 const val = parseFloat(amountInput.value);
-                const date = dateInput.value;
+                const dateDisplay = dateInput.value;
+                const date = parseDateFromDisplay(dateDisplay); // Parse display format to ISO
                 const source = sourceInput.value.trim();
 
-                if (!isNaN(val) && val !== 0 && date) {
+                if (!isNaN(val) && val !== 0 && date) { // Check if date is not null
                     totalAmount += val;
                     currentVal = val;
                     row.dataset.id = currentId || Date.now() + Math.random();
@@ -446,8 +522,8 @@
                     currentId = newId;
                     savedEntries.push({ id: newId, val: val, date: date, source: source });
                     saveToStorage();
-                    // Usunięto pokazywanie przycisku +, ponieważ jest zawsze widoczny
                     if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
+                    animateRowOut(row, () => { row.remove(); }); // Usuń wiersz po pomyślnym dodaniu
                 }
                 else {
                     alert('Proszę wprowadzić prawidłową kwotę i datę.');
@@ -464,7 +540,6 @@
             inputGroup.appendChild(dateInput);
             inputGroup.appendChild(sourceInput);
             inputGroup.appendChild(btn);
-            inputGroup.appendChild(delBtn);
             
             row.appendChild(inputGroup); // Append the input group to the row
 
@@ -483,7 +558,7 @@
         // Inicjalizacja: dodaj zapisane wpisy do widoku i oblicz sumę
         savedEntries.forEach(entry => {
             totalAmount += entry.val;
-            createRow(entry, true);
+            // Wpisy są ładowane tylko do obliczenia sumy, nie są wyświetlane na stronie Start.
         });
         updateTotal();
 
