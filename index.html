@@ -247,19 +247,6 @@
             border: 1px solid #cce5ff;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
-        .sync-input-wrapper {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        .copy-btn {
-            background: #e9ecef;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
         .refresh-btn {
             position: absolute;
             top: 15px;
@@ -281,6 +268,27 @@
             background-color: #e2e6ea;
             transform: rotate(90deg);
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            right: 60px; /* Obok przycisku odświeżania */
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .settings-btn:hover {
+            background-color: #e2e6ea;
+            transform: rotate(45deg);
         }
         .hidden { display: none !important; }
     </style>
@@ -307,6 +315,7 @@
 
         <!-- Główna zawartość - pojawia się po kliknięciu -->
         <div id="app-content" class="hidden">
+            <button id="settings-icon" class="settings-btn" onclick="showTab('settings')" title="Ustawienia">⚙️</button>
             <h2 id="current-set-title" style="color: #666; margin-bottom: 20px;"></h2>
             
             <div class="tabs">
@@ -323,29 +332,14 @@
             <div id="view-history" class="hidden"> <!-- Domyślnie ukryta -->
                 <h3>Historia wpisów</h3>
                 <ul id="history-list" class="history-list"></ul>
-                
-                <div class="admin-actions">
-                    <div class="sync-box">
-                        <h4 style="margin-top:0; color:#004085; font-size: 0.9em;">☁️ Synchronizacja (Chmura)</h4>
-                        <div class="sync-input-wrapper">
-                            <input type="text" id="sync-key-input" placeholder="Klucz synchronizacji" style="flex-grow: 1; padding: 8px; border-radius: 5px; border: 1px solid #b8daff;">
-                            <button class="copy-btn" onclick="copySyncKey()" title="Kopiuj klucz">📋</button>
-                        </div>
-                        <div style="display: flex; gap: 5px; justify-content: center;">
-                            <button class="add-amount-button btn-small" style="background-color: #6f42c1" onclick="pushSync()">Wyślij ⬆️</button>
-                            <button class="add-amount-button btn-small" style="background-color: #fd7e14" onclick="pullSync()">Pobierz ⬇️</button>
-                        </div>
-                    </div>
+            </div>
 
-                    <div class="sync-box" style="background: #fff3cd; border-color: #ffeeba;">
-                        <h4 style="margin-top:0; color:#856404; font-size: 0.9em;">📲 Transfer ręczny (gdy chmura zawiedzie)</h4>
-                        <button class="add-amount-button btn-small" style="background-color: #856404; width: 100%; margin-bottom: 5px;" onclick="copyDataString()">Kopiuj kod danych</button>
-                        <button class="add-amount-button btn-small" style="background-color: #6c757d; width: 100%;" onclick="importFromText()">Wklej kod danych</button>
-                    </div>
-
-                    <button class="add-amount-button" style="background-color: #6c757d; font-size: 0.9em;" onclick="exportData()">📤 Eksportuj dane</button>
-                    <button class="add-amount-button" style="background-color: #6c757d; font-size: 0.9em;" onclick="document.getElementById('import-file').click()">📥 Importuj dane</button>
-                    <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+            <div id="view-settings" class="hidden"> <!-- Nowa zakładka Ustawienia -->
+                <h3>Ustawienia</h3>
+                <div class="sync-box" style="background: #fff3cd; border-color: #ffeeba; margin-top: 15px;">
+                    <h4 style="margin-top:0; color:#856404; font-size: 0.9em;">📲 Transfer ręczny kodem</h4>
+                    <button class="add-amount-button btn-small" style="background-color: #856404; width: 100%; margin-bottom: 8px;" onclick="copyDataString()">Kopiuj kod danych</button>
+                    <button class="add-amount-button btn-small" style="background-color: #6c757d; width: 100%;" onclick="importFromText()">Wklej kod danych</button>
                 </div>
             </div>
         </div>
@@ -358,30 +352,18 @@
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
 
-        // Klucz synchronizacji
-        const syncKeyInput = document.getElementById('sync-key-input');
-        syncKeyInput.value = localStorage.getItem('moneySyncKey') || '';
-
         // Logika sprawdzania PINu
         window.checkPin = () => {
             const pinInput = document.getElementById('pin-input');
             if (pinInput.value === '1109') { // Tutaj możesz zmienić swój PIN
                 document.getElementById('view-pin').classList.add('hidden');
                 document.getElementById('view-selection').classList.remove('hidden');
-                autoPull(); // Automatyczne pobranie danych po zalogowaniu
             } else {
                 alert('Błędny PIN!');
                 pinInput.value = '';
                 pinInput.focus();
             }
         };
-
-        // Synchronizacja przy powrocie do karty (np. przełączenie z innej apki na telefonie)
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && !document.getElementById('app-content').classList.contains('hidden')) {
-                autoPull();
-            }
-        });
 
         document.getElementById('pin-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') checkPin();
@@ -435,7 +417,6 @@
 
         function saveToStorage() {
             localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
-            silentPush(); // Automatycznie wyślij do chmury po każdej zmianie
         }
 
         function showTab(tabName) {
@@ -450,6 +431,7 @@
             // Ukryj wszystkie widoki
             document.getElementById('view-start').classList.add('hidden');
             document.getElementById('view-history').classList.add('hidden');
+            document.getElementById('view-settings').classList.add('hidden');
 
             // Pokaż wybrany widok
             document.getElementById(`view-${tabName}`).classList.remove('hidden');
@@ -672,153 +654,8 @@
             createRow();
         });
 
-        // Funkcja eksportu danych do pliku JSON
-        window.exportData = () => {
-            const dataStr = JSON.stringify(savedEntries, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const date = new Date().toISOString().split('T')[0];
-            
-            link.href = url;
-            link.download = `licznik_pieniedzy_backup_${date}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-        };
-
-        // Funkcja importu danych z pliku JSON
-        window.importData = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (Array.isArray(importedData) && confirm("Czy chcesz zastąpić obecne dane danymi z pliku?")) {
-                        savedEntries = importedData;
-                        saveToStorage();
-                        location.reload(); // Odświeżamy stronę, aby przeliczyć sumę i zablokować PINem
-                    } else if (!Array.isArray(importedData)) {
-                        alert("Błędny format pliku.");
-                    }
-                } catch (err) {
-                    alert("Błąd podczas odczytu pliku. Upewnij się, że to poprawny plik .json");
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        // Funkcja kopiowania klucza
-        window.copySyncKey = () => {
-            const key = syncKeyInput.value.trim();
-            if (!key) return alert("Brak klucza do skopiowania.");
-            navigator.clipboard.writeText(key).then(() => {
-                alert("Klucz skopiowany do schowka!");
-            });
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(key).then(() => {
-                    alert("Klucz skopiowany do schowka!");
-                }).catch(() => {
-                    window.prompt("Skopiuj klucz ręcznie (Ctrl+C):", key);
-                });
-            } else {
-                window.prompt("Skopiuj klucz ręcznie (Ctrl+C):", key);
-            }
-        };
-
-        // Funkcja wysyłania danych do chmury
-        window.pushSync = async () => {
-            let key = syncKeyInput.value.trim() || localStorage.getItem('moneySyncKey');
-            if (window.location.protocol === 'file:') {
-                console.warn("Uwaga: Przeglądarki mogą blokować synchronizację przy otwieraniu pliku bezpośrednio z dysku.");
-            }
-            try {
-                if (!key) {
-                    if (!confirm("Nie masz klucza. Czy chcesz wygenerować nowy i wysłać dane?")) return;
-                    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-                        body: JSON.stringify(savedEntries)
-                    });
-                    if (!res.ok) throw new Error("Serwer odrzucił żądanie (Status: " + res.status + ")");
-                    key = res.headers.get('Location').split('/').pop();
-                    localStorage.setItem('moneySyncKey', key);
-                    syncKeyInput.value = key;
-                    alert("Sukces! Twój klucz to: " + key + "\nSkopiuj go na drugie urządzenie.");
-                } else {
-                    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${key}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-                        body: JSON.stringify(savedEntries)
-                    });
-                    if (!res.ok) {
-                        if (res.status === 404) throw new Error("Nie znaleziono klucza w chmurze (404). Wygeneruj nowy.");
-                        throw new Error("Błąd serwera: " + res.status);
-                    }
-                    alert("Dane zaktualizowane w chmurze!");
-                }
-            } catch (err) {
-                if (err.message === 'Failed to fetch') {
-                    let msg = "Błąd połączenia z chmurą.\n\nMożliwe przyczyny:\n";
-                    if (window.location.protocol === 'file:') msg += "👉 Otwierasz plik z dysku. Przeglądarka blokuje dostęp do internetu dla plików lokalnych.\n\nROZWIĄZANIE: Użyj 'Transferu ręcznego' poniżej lub wrzuć plik na darmowy hosting (np. GitHub Pages).";
-                    msg += "- Brak internetu.\n";
-                    msg += "- AdBlock blokuje serwer jsonblob.";
-                    alert(msg);
-                } else {
-                    alert("Błąd synchronizacji: " + err.message);
-                }
-            }
-        };
-
-        // Funkcja pobierania danych z chmury
-        window.pullSync = async () => {
-            const key = syncKeyInput.value.trim();
-            if (!key) { alert("Wpisz klucz, aby pobrać dane!"); return; }
-            try {
-                const res = await fetch(`https://jsonblob.com/api/jsonBlob/${key}`);
-                if (!res.ok) {
-                    if (res.status === 404) throw new Error("Nieprawidłowy klucz (nie znaleziono danych).");
-                    throw new Error("Błąd serwera: " + res.status);
-                }
-                const data = await res.json();
-                if (confirm("Pobrano dane. Zastąpić nimi obecną historię?")) {
-                    localStorage.setItem('moneySyncKey', key);
-                    savedEntries = data;
-                    saveToStorage();
-                    location.reload();
-                }
-            } catch (err) {
-                if (err.message === 'Failed to fetch') {
-                    alert("Błąd połączenia przy pobieraniu. Wyłącz AdBlocka i sprawdź internet.");
-                } else {
-                    alert("Błąd pobierania: " + err.message);
-                }
-            }
-        };
-
-        // Funkcja wysyłająca dane w tle (bez powiadomień)
-        async function silentPush() {
-            const key = localStorage.getItem('moneySyncKey');
-            if (!key) return;
-            try {
-                await fetch(`https://jsonblob.com/api/jsonBlob/${key}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-                    body: JSON.stringify(savedEntries)
-                });
-                console.log("Zsynchronizowano z chmurą (Push)");
-            } catch (err) { console.warn("Błąd auto-synchronizacji"); }
-        }
-
-        // Funkcja kopiowania danych jako tekst (Base64)
         // Funkcja generowania kodu transferu (Offline)
         window.copyDataString = () => {
-            const dataStr = JSON.stringify(savedEntries);
-            const encoded = btoa(unescape(encodeURIComponent(dataStr))); // Zakoduj w Base64
-            navigator.clipboard.writeText(encoded).then(() => {
-                alert("Kod danych skopiowany! Wyślij go na drugie urządzenie i tam kliknij 'Wklej kod danych'.");
-            });
             try {
                 const dataStr = JSON.stringify(savedEntries);
                 const encoded = btoa(unescape(encodeURIComponent(dataStr))); // Zakoduj w Base64 (bezpieczne dla polskich znaków)
@@ -850,26 +687,6 @@
                     location.reload();
                 }
             } catch (e) { alert("Błędny kod danych!"); }
-        };
-
-        // Funkcja pobierająca dane w tle
-        window.autoPull = async () => {
-            const key = localStorage.getItem('moneySyncKey');
-            if (!key) return;
-            try {
-                const res = await fetch(`https://jsonblob.com/api/jsonBlob/${key}`);
-                if (!res.ok) return;
-                const data = await res.json();
-                // Aktualizuj tylko jeśli dane w chmurze są inne niż lokalne
-                if (JSON.stringify(data) !== JSON.stringify(savedEntries)) {
-                    savedEntries = data;
-                    localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
-                    totalAmount = savedEntries.reduce((sum, entry) => sum + entry.val, 0);
-                    updateTotal();
-                    if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
-                    console.log("Dane zaktualizowane z chmury (Pull)");
-                }
-            } catch (err) { console.warn("Błąd auto-pobierania"); }
         };
     </script>
 </body>
