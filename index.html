@@ -321,6 +321,7 @@
             <div class="tabs">
                 <button class="tab-button active" onclick="showTab('start')">Start</button>
                 <button class="tab-button" onclick="showTab('history')">Historia</button>
+                <button class="tab-button" onclick="showTab('transfer')">Kod</button>
             </div>
 
             <div id="view-start"> <!-- Domyślnie widoczna -->
@@ -334,12 +335,28 @@
                 <ul id="history-list" class="history-list"></ul>
             </div>
 
-            <div id="view-settings" class="hidden"> <!-- Nowa zakładka Ustawienia -->
-                <h3>Ustawienia</h3>
+            <div id="view-transfer" class="hidden"> <!-- Nowa zakładka Kod -->
+                <h3>Transfer Danych</h3>
                 <div class="sync-box" style="background: #fff3cd; border-color: #ffeeba; margin-top: 15px;">
                     <h4 style="margin-top:0; color:#856404; font-size: 0.9em;">📲 Transfer ręczny kodem</h4>
-                    <button class="add-amount-button btn-small" style="background-color: #856404; width: 100%; margin-bottom: 8px;" onclick="copyDataString()">Kopiuj kod danych</button>
-                    <button class="add-amount-button btn-small" style="background-color: #6c757d; width: 100%;" onclick="importFromText()">Wklej kod danych</button>
+                    <button class="add-amount-button btn-small" style="background-color: #856404; width: 100%; margin-bottom: 8px;" onclick="copyDataString()">Generuj i kopiuj kod danych</button>
+                    <button class="add-amount-button btn-small" style="background-color: #6c757d; width: 100%;" onclick="importFromText()">Wklej kod danych z innego urządzenia</button>
+                </div>
+            </div>
+
+            <div id="view-settings" class="hidden"> <!-- Nowa zakładka Ustawienia -->
+                <h3>Ustawienia</h3>
+                <div class="sync-box" style="background: #e2e3e5; border-color: #d6d8db; margin-top: 15px;">
+                    <h4 style="margin-top:0; color:#383d41; font-size: 0.9em;">🔒 Zabezpieczenie PIN</h4>
+                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                        <input type="checkbox" id="pin-toggle" onchange="togglePinRequirement()"> 
+                        <span>Włącz blokadę PIN</span>
+                    </label>
+                    <div id="pin-change-section">
+                        <input type="password" id="new-pin-1" placeholder="Nowy PIN (4 cyfry)" maxlength="4" style="width: 100%; margin-bottom: 5px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
+                        <input type="password" id="new-pin-2" placeholder="Powtórz nowy PIN" maxlength="4" style="width: 100%; margin-bottom: 8px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
+                        <button class="add-amount-button btn-small" style="background-color: #007bff; width: 100%;" onclick="changeAppPin()">Zmień PIN</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -352,10 +369,21 @@
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
 
+        // Inicjalizacja zabezpieczeń
+        let currentPin = localStorage.getItem('appPin') || '1109';
+        let pinEnabled = localStorage.getItem('pinEnabled') !== 'false';
+        let lastActiveTab = 'start';
+
+        // Auto-odblokowanie jeśli PIN wyłączony
+        if (!pinEnabled) {
+            document.getElementById('view-pin').classList.add('hidden');
+            document.getElementById('view-selection').classList.remove('hidden');
+        }
+
         // Logika sprawdzania PINu
         window.checkPin = () => {
             const pinInput = document.getElementById('pin-input');
-            if (pinInput.value === '1109') { // Tutaj możesz zmienić swój PIN
+            if (pinInput.value === currentPin) {
                 document.getElementById('view-pin').classList.add('hidden');
                 document.getElementById('view-selection').classList.remove('hidden');
             } else {
@@ -363,6 +391,33 @@
                 pinInput.value = '';
                 pinInput.focus();
             }
+        };
+
+        window.togglePinRequirement = () => {
+            const checkbox = document.getElementById('pin-toggle');
+            pinEnabled = checkbox.checked;
+            localStorage.setItem('pinEnabled', pinEnabled);
+            document.getElementById('pin-change-section').classList.toggle('hidden', !pinEnabled);
+        };
+
+        window.changeAppPin = () => {
+            const p1 = document.getElementById('new-pin-1').value;
+            const p2 = document.getElementById('new-pin-2').value;
+
+            if (p1.length < 4 || isNaN(p1)) {
+                alert("PIN musi składać się z 4 cyfr.");
+                return;
+            }
+            if (p1 !== p2) {
+                alert("Wpisane kody PIN nie są identyczne.");
+                return;
+            }
+
+            currentPin = p1;
+            localStorage.setItem('appPin', currentPin);
+            alert("PIN został zmieniony pomyślnie.");
+            document.getElementById('new-pin-1').value = '';
+            document.getElementById('new-pin-2').value = '';
         };
 
         document.getElementById('pin-input').addEventListener('keypress', (e) => {
@@ -420,24 +475,46 @@
         }
 
         function showTab(tabName) {
+            const settingsView = document.getElementById('view-settings');
+            
+            // Jeśli ustawienia są już otwarte i klikamy w zębatkę ponownie - wróć do poprzedniej zakładki
+            if (tabName === 'settings' && !settingsView.classList.contains('hidden')) {
+                showTab(lastActiveTab);
+                return;
+            }
+
             // Dezaktywuj wszystkie przyciski zakładek
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
             });
 
-            // Aktywuj kliknięty przycisk zakładki
-            document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`).classList.add('active');
+            // Aktywuj kliknięty przycisk zakładki (jeśli istnieje w dolnym menu)
+            const activeTabBtn = document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`);
+            if (activeTabBtn) {
+                activeTabBtn.classList.add('active');
+            }
 
             // Ukryj wszystkie widoki
             document.getElementById('view-start').classList.add('hidden');
             document.getElementById('view-history').classList.add('hidden');
+            document.getElementById('view-transfer').classList.add('hidden');
             document.getElementById('view-settings').classList.add('hidden');
 
             // Pokaż wybrany widok
             document.getElementById(`view-${tabName}`).classList.remove('hidden');
 
+            // Zapamiętaj zakładkę jako ostatnią aktywną (pod warunkiem, że to nie ustawienia)
+            if (tabName !== 'settings') {
+                lastActiveTab = tabName;
+            }
+
             if (tabName === 'history') {
                 renderHistory(); // Odśwież historię tylko, gdy przechodzimy do zakładki historii
+            }
+
+            if (tabName === 'settings') {
+                document.getElementById('pin-toggle').checked = pinEnabled;
+                document.getElementById('pin-change-section').classList.toggle('hidden', !pinEnabled);
             }
         }
 
@@ -658,12 +735,12 @@
         window.copyDataString = () => {
             try {
                 const dataStr = JSON.stringify(savedEntries);
-                const encoded = btoa(unescape(encodeURIComponent(dataStr))); // Zakoduj w Base64 (bezpieczne dla polskich znaków)
+                const encoded = btoa(unescape(encodeURIComponent(dataStr))); 
                 
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(encoded).then(() => {
                         alert("KOD TRANSFERU SKOPIOWANY!\n\nWyślij ten tekst na drugie urządzenie i tam wybierz 'Wklej kod danych'.");
-                    }).catch(() => {
+                    }).catch((err) => {
                         window.prompt("SKOPIUJ PONIŻSZY KOD (Ctrl+C) i wyślij na drugie urządzenie:", encoded);
                     });
                 } else {
