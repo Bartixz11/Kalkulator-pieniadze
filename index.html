@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Licznik Pieniędzy</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -108,8 +111,6 @@
             text-align: left;
             list-style: none;
             padding: 0;
-            max-height: 300px;
-            overflow-y: auto;
         }
         .history-item {
             padding: 10px;
@@ -323,6 +324,12 @@
         body.dark-mode .refresh-btn, body.dark-mode .settings-btn, body.dark-mode .theme-btn { background: #333; border-color: #444; color: #fff; }
 
         .hidden { display: none !important; }
+
+        #chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -354,6 +361,7 @@
             <div class="tabs">
                 <button class="tab-button active" onclick="showTab('start')">Start</button>
                 <button class="tab-button" onclick="showTab('history')">Historia</button>
+                <button class="tab-button" onclick="showTab('chart')">Wykres</button>
                 <button class="tab-button" onclick="showTab('transfer')">Kod</button>
             </div>
 
@@ -366,6 +374,13 @@
             <div id="view-history" class="hidden"> <!-- Domyślnie ukryta -->
                 <h3>Historia wpisów</h3>
                 <ul id="history-list" class="history-list"></ul>
+            </div>
+
+            <div id="view-chart" class="hidden">
+                <h3>Zarobki miesięczne</h3>
+                <div id="chart-container">
+                    <canvas id="moneyChart"></canvas>
+                </div>
             </div>
 
             <div id="view-transfer" class="hidden"> <!-- Nowa zakładka Kod -->
@@ -387,8 +402,8 @@
                         <span>Włącz blokadę PIN</span>
                     </label>
                     <div id="pin-change-section">
-                        <input type="password" id="new-pin-1" placeholder="Nowy PIN (4 cyfry)" maxlength="4" style="width: 100%; margin-bottom: 5px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
-                        <input type="password" id="new-pin-2" placeholder="Powtórz nowy PIN" maxlength="4" style="width: 100%; margin-bottom: 8px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
+                        <input type="password" id="new-pin-1" placeholder="Nowy PIN (4 cyfry)" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 5px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
+                        <input type="password" id="new-pin-2" placeholder="Powtórz nowy PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 8px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
                         <button class="add-amount-button btn-small" style="background-color: #007bff; width: 100%;" onclick="changeAppPin()">Zmień PIN</button>
                     </div>
                 </div>
@@ -402,6 +417,12 @@
         const addEntryButton = document.getElementById('add-entry-button');
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
+        let myChart = null;
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.error("SW Registration failed", err));
+        }
 
         // Inicjalizacja zabezpieczeń
         let currentPin = localStorage.getItem('appPin') || '1109';
@@ -419,6 +440,7 @@
             }
         }
         updateThemeIcon();
+        Chart.defaults.color = darkMode ? '#e0e0e0' : '#666';
 
 
         // Auto-odblokowanie jeśli PIN wyłączony
@@ -446,6 +468,8 @@
             darkMode = !darkMode;
             localStorage.setItem('darkMode', darkMode);
             document.body.classList.toggle('dark-mode', darkMode);
+            Chart.defaults.color = darkMode ? '#e0e0e0' : '#666';
+            if (myChart) renderChart();
             updateThemeIcon();
         };
 
@@ -561,11 +585,13 @@
             document.getElementById('view-start').classList.add('hidden');
             document.getElementById('view-history').classList.add('hidden');
             document.getElementById('view-transfer').classList.add('hidden');
+            document.getElementById('view-chart').classList.add('hidden');
             document.getElementById('view-settings').classList.add('hidden');
             document.getElementById('view-selection').classList.add('hidden');
 
             // Pokaż wybrany widok
             if (tabName !== 'selection') {
+                if (document.getElementById(`view-${tabName}`)) 
                 document.getElementById(`view-${tabName}`).classList.remove('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
             } else {
@@ -584,10 +610,64 @@
                 renderHistory(); // Odśwież historię tylko, gdy przechodzimy do zakładki historii
             }
 
+            if (tabName === 'chart') {
+                renderChart();
+            }
+
             if (tabName === 'settings') {
                 document.getElementById('pin-toggle').checked = pinEnabled;
                 document.getElementById('pin-change-section').classList.toggle('hidden', !pinEnabled);
             }
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('moneyChart').getContext('2d');
+            
+            // Grupowanie danych po miesiącach
+            const monthlyData = {};
+            savedEntries.forEach(entry => {
+                if (!entry.date) return;
+                const monthKey = entry.date.substring(0, 7); // Format YYYY-MM
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + entry.val;
+            });
+
+            const sortedKeys = Object.keys(monthlyData).sort();
+            const labels = sortedKeys.map(key => {
+                const [year, month] = key.split('-');
+                const names = ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"];
+                return `${names[parseInt(month)-1]} ${year}`;
+            });
+            const values = sortedKeys.map(key => monthlyData[key]);
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Zarobione (zł)',
+                        data: values,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#28a745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
         }
 
         function renderHistory() {
@@ -597,7 +677,7 @@
                 const li = document.createElement('li');
                 li.className = 'history-item';
                 li.innerHTML = `
-                    <span><strong>${entry.val.toFixed(2)} zł</strong><br><small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
+                    <span style="flex-grow: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;"><strong>${entry.val.toFixed(2)} zł</strong> — <small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
                     <div class="history-actions">
                         <button class="add-amount-button btn-small" style="background-color: #ffc107" onclick="editEntry(${originalIndex})">Edytuj</button>
                         <button class="add-amount-button btn-small" style="background-color: #dc3545" onclick="deleteEntry(${originalIndex})">Usuń</button>
@@ -676,11 +756,13 @@
             amountInput.type = 'number';
             amountInput.step = '0.01';
             amountInput.placeholder = 'Kwota';
-            amountInput.inputMode = 'decimal'; // Klawiatura numeryczna z kropką/przecinkiem
+            amountInput.setAttribute('inputmode', 'decimal'); // Klawiatura numeryczna z kropką/przecinkiem
+            amountInput.setAttribute('pattern', '[0-9]*'); // Wymuszenie klawiatury numerycznej na iOS
 
             const dateInput = document.createElement('input');
             dateInput.type = 'text';
-            dateInput.inputMode = 'numeric'; // Klawiatura numeryczna dla daty
+            dateInput.setAttribute('inputmode', 'numeric'); // Klawiatura numeryczna dla daty
+            dateInput.setAttribute('pattern', '[0-9]*'); // Wymuszenie klawiatury numerycznej na iOS
             dateInput.value = formatDateForDisplay(new Date().toISOString().split('T')[0]); // Domyślna dzisiejsza data w formacie DD MM RRRR
             
             const sourceInput = document.createElement('input');
@@ -806,7 +888,12 @@
         // Pobiera dane w formie zakodowanego ciągu
         function getEncodedData() {
             const compactData = savedEntries.map(e => [e.id, e.val, e.date, e.source]);
-            return btoa(unescape(encodeURIComponent(JSON.stringify(compactData))));
+            const exportPackage = {
+                entries: compactData,
+                pin: currentPin,
+                pinEnabled: pinEnabled
+            };
+            return btoa(unescape(encodeURIComponent(JSON.stringify(exportPackage))));
         }
 
         // Funkcja kopiowania kodu
@@ -850,20 +937,36 @@
                 const decoded = decodeURIComponent(escape(atob(code)));
                 const data = JSON.parse(decoded);
 
-                if (!Array.isArray(data)) throw new Error("Nieprawidłowy format");
+                let entriesToImport = [];
+                let importedPin = null;
+                let importedPinEnabled = null;
 
-                if (confirm("Wykryto dane. Czy zastąpić obecną historię?")) {
+                if (Array.isArray(data)) {
+                    // Wsparcie dla starego formatu (sama lista wpisów)
+                    entriesToImport = data;
+                } else if (data && typeof data === 'object' && data.entries) {
+                    // Nowy format (wpisy + ustawienia PIN)
+                    entriesToImport = data.entries;
+                    importedPin = data.pin;
+                    importedPinEnabled = data.pinEnabled;
+                } else {
+                    throw new Error("Nieprawidłowy format");
+                }
+
+                if (confirm("Wykryto dane. Czy zastąpić obecną historię oraz ustawienia PIN?")) {
                     // Obsługa nowego skróconego formatu oraz starego formatu dla kompatybilności
-                    if (data.length > 0 && Array.isArray(data[0])) {
-                        savedEntries = data.map(item => ({
+                    if (entriesToImport.length > 0 && Array.isArray(entriesToImport[0])) {
+                        savedEntries = entriesToImport.map(item => ({
                             id: item[0],
                             val: item[1],
                             date: item[2],
                             source: item[3] || ''
                         }));
                     } else {
-                        savedEntries = data;
+                        savedEntries = entriesToImport;
                     }
+                    if (importedPin !== null) localStorage.setItem('appPin', importedPin);
+                    if (importedPinEnabled !== null) localStorage.setItem('pinEnabled', importedPinEnabled);
                     saveToStorage();
                     location.reload();
                 }
