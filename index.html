@@ -5,63 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Licznik Pieniędzy</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#235347">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Tło animowane */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at top right, #DAF1DE, #E8F5E9, #f0fdf4);
+        }
+        .bg-bar {
+            position: absolute;
+            width: 300%;
+            height: 350px;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.15), transparent);
+            transform: rotate(-25deg);
+            filter: blur(80px);
+            animation: flow 25s linear infinite;
+        }
+        .bar1 { top: -5%; left: -150%; background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.2), transparent); }
+        .bar2 { bottom: -5%; left: -120%; animation-duration: 40s; animation-direction: reverse; opacity: 0.5; }
+
+        @keyframes flow {
+            0% { transform: translateX(0) rotate(-25deg); }
+            100% { transform: translateX(40%) rotate(-25deg); }
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 50px;
-            background-color: #f4f4f4;
-            color: #333;
+            padding: 20px;
+            margin: 0;
+            background-color: #f0fdf4; 
+            color: #064E3B;
+            min-height: 100vh;
         }
         .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 16px; /* Slightly more rounded */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Deeper, softer shadow */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             text-align: center;
-            width: 90%;
-            max-width: 400px;
-            position: relative; /* Umożliwia pozycjonowanie przycisku odświeżania */
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            margin-top: 40px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 600px) {
+            .container {
+                max-width: 550px;
+                padding: 40px;
+            }
         }
         .tabs {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 15px;
+            gap: 5px;
         }
         .tab-button {
-            padding: 10px 20px;
+            padding: 8px 16px;
             cursor: pointer;
             background: none;
             border: none;
-            font-size: 1.1em;
-            color: #666;
-            transition: color 0.3s, border-bottom 0.3s;
+            font-size: 0.95em;
+            color: #64748b;
+            transition: all 0.3s;
+            border-radius: 10px;
         }
-        .tab-button:hover { color: #007bff; }
+        .tab-button:hover { color: #059669; background: rgba(16, 185, 129, 0.1); }
         .tab-button.active {
-            color: #007bff;
-            border-bottom: 3px solid #007bff;
+            color: #ffffff;
+            background: #10B981;
             font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for active tab */
-            border-radius: 5px 5px 0 0; /* Rounded top corners */
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
         h1 {
-            color: #0056b3;
+            color: #064E3B;
             margin-bottom: 20px;
+            font-size: 1.8em;
         }
         #total-display {
             font-size: 2.5em;
             font-weight: bold;
             margin-bottom: 30px;
-            color: #28a745;
+            background: linear-gradient(135deg, #059669 0%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         #add-entry-button {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #10B981, #059669);
             color: white;
             border: none;
             border-radius: 50%;
@@ -76,27 +124,26 @@
             justify-content: center;
             margin-left: auto;
             margin-right: auto;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Initial shadow for + button */
-
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
         }
-        #add-entry-button:hover { background-color: #0056b3; }
+        #add-entry-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5); }
         #add-entry-button:active { transform: scale(0.95); }
         input[type="number"] {
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #8EB69B;
             border-radius: 6px;
             font-size: 1em;
-            flex-grow: 1; /* Allow inputs to grow */
+            flex-grow: 1;
         }
         /* Modernistic input focus - un-nested for mobile compatibility */
         input[type="number"]:focus {
             outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
         }
         .add-amount-button {
-            padding: 10px 15px;
-            background-color: #28a745;
+            padding: 12px 20px;
+            background: #10B981;
             color: white;
             border: none;
             border-radius: 6px;
@@ -114,19 +161,21 @@
         }
         .history-item {
             padding: 10px;
-            border-bottom: 1px solid #eee;
+            border-left: 4px solid #8EB69B;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-radius: 8px; /* Rounded corners */
             margin-bottom: 8px; /* Space between items */
-            background-color: #fdfdfd; /* Slightly off-white background */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+            background-color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
             transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f1f5f9;
+            border-left: 4px solid #10B981;
         }
         .history-item:hover {
             transform: translateY(-2px); /* Lift effect on hover */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* More pronounced shadow on hover */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08); /* More pronounced shadow on hover */
         }
         .history-actions {
             display: flex;
@@ -159,24 +208,24 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background-color: #007bff;
+            background: linear-gradient(135deg, #10B981, #059669);
             color: white;
             border: none;
             font-size: 3em;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); /* Deeper shadow */
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3), inset 0 4px 10px rgba(255,255,255,0.2);
             cursor: pointer;
         }
         .set-label {
             margin-top: 12px;
             font-weight: bold;
-            color: #555;
+            color: #064E3B;
             font-size: 1.1em;
         }
         .set-option:hover .circle-btn {
-            box-shadow: 0 12px 25px rgba(0, 123, 255, 0.5); /* Even deeper on hover */
+            box-shadow: 0 20px 40px rgba(35, 83, 71, 0.45);
         }
 
         /* Animation for new rows */
@@ -218,42 +267,42 @@
         .entry-row input[type="date"]:focus,
         .entry-row input[type="text"]:focus {
             outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+            border-color: #235347;
+            box-shadow: 0 0 0 4px rgba(35, 83, 71, 0.15), 0 4px 10px rgba(0,0,0,0.05);
         }
         #pin-input {
             font-size: 2em;
             text-align: center;
             width: 150px;
             padding: 10px;
-            border-radius: 12px;
-            border: 2px solid #ddd;
+            border-radius: 6px; /* Consistent with other inputs */
+            border: 1px solid #8EB69B; /* Light green/grey-green */
             margin-bottom: 20px;
         }
         .admin-actions {
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #8EB69B; /* Light green/grey-green */
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
         .sync-box {
-            background: #f0f7ff;
+            background: #DAF1DE; /* Very light green/off-white */
             padding: 15px;
             border-radius: 10px;
             width: 100%;
             margin-bottom: 10px;
-            border: 1px solid #cce5ff;
+            border: 1px solid #8EB69B; /* Light green/grey-green */
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
         .refresh-btn {
             position: absolute;
             top: 15px;
             right: 15px;
-            background: #f8f9fa;
-            border: 1px solid #eee;
+            background: #DAF1DE; /* Very light green/off-white */
+            border: 1px solid #8EB69B; /* Light green/grey-green */
             border-radius: 50%;
             width: 35px;
             height: 35px;
@@ -262,20 +311,20 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             z-index: 100;
         }
         .refresh-btn:hover {
-            background-color: #e2e6ea;
+            background-color: #DAF1DE;
             transform: rotate(90deg);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
         }
         .settings-btn {
             position: absolute;
             top: 15px;
             right: 60px;
-            background: #f8f9fa;
-            border: 1px solid #eee;
+            background: #ffffff;
+            border: 1px solid #DAF1DE;
             border-radius: 50%;
             width: 35px;
             height: 35px;
@@ -284,19 +333,19 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             z-index: 100;
         }
         .settings-btn:hover {
-            background-color: #e2e6ea;
+            background-color: #DAF1DE;
             transform: rotate(45deg);
         }
         .theme-btn {
             position: absolute;
             top: 15px;
             right: 105px;
-            background: #f8f9fa;
-            border: 1px solid #eee;
+            background: #ffffff;
+            border: 1px solid #DAF1DE;
             border-radius: 50%;
             width: 35px;
             height: 35px;
@@ -305,23 +354,25 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             z-index: 100;
         }
         .theme-btn:hover {
-            background-color: #e2e6ea;
+            background-color: #DAF1DE;
         }
         /* Tryb Ciemny */
-        body.dark-mode { background-color: #121212; color: #e0e0e0; }
-        body.dark-mode .container { background-color: #1e1e1e; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
-        body.dark-mode .tab-button { color: #bbb; }
-        body.dark-mode .tab-button.active { color: #4da3ff; border-bottom-color: #4da3ff; }
-        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; }
-        body.dark-mode .history-item { background-color: #2d2d2d; border-bottom-color: #444; }
-        body.dark-mode .sync-box { background-color: #2a2a2a !important; border-color: #444 !important; }
-        body.dark-mode .sync-box h4, body.dark-mode .sync-box span { color: #e0e0e0 !important; }
-        body.dark-mode input { background-color: #333 !important; color: #fff !important; border-color: #555 !important; }
-        body.dark-mode .refresh-btn, body.dark-mode .settings-btn, body.dark-mode .theme-btn { background: #333; border-color: #444; color: #fff; }
+        body.dark-mode { background-color: #020617; color: #E2E8F0; } 
+        body.dark-mode .container { background: rgba(15, 23, 42, 0.9); border-color: rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        body.dark-mode .tab-button { color: #94A3B8; }
+        body.dark-mode .tab-button.active { color: #DAF1DE; border-bottom-color: #DAF1DE; } /* Very light green/off-white */
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #10B981; }
+        body.dark-mode .history-item { background-color: #1e293b; border-bottom-color: #0f172a; border-left-color: #10B981; }
+        body.dark-mode .sync-box { background-color: #0B2B26 !important; border-color: #163832 !important; } /* Dark green, Medium dark green */
+        body.dark-mode .bg-animation { background-color: #020617; }
+        body.dark-mode .bg-bar { background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent); }
+        body.dark-mode .sync-box h4, body.dark-mode .sync-box span { color: #DAF1DE !important; } /* Very light green/off-white */
+        body.dark-mode input { background-color: #0B2B26 !important; color: #DAF1DE !important; border-color: #163832 !important; } /* Dark green, Very light green/off-white, Medium dark green */
+        body.dark-mode .refresh-btn, body.dark-mode .settings-btn, body.dark-mode .theme-btn { background: #0B2B26; border-color: #163832; color: #DAF1DE; } /* Dark green, Medium dark green, Very light green/off-white */
 
         .hidden { display: none !important; }
 
@@ -333,6 +384,10 @@
     </style>
 </head>
 <body>
+    <div class="bg-animation">
+        <div class="bg-bar bar1"></div>
+        <div class="bg-bar bar2"></div>
+    </div>
     <div class="container">
         <button id="theme-toggle-btn" class="theme-btn" onclick="toggleDarkMode()" title="Zmień motyw">🌙</button>
         <button id="settings-icon" class="settings-btn hidden" onclick="showTab('settings')" title="Ustawienia">⚙️</button>
@@ -440,7 +495,7 @@
             }
         }
         updateThemeIcon();
-        Chart.defaults.color = darkMode ? '#e0e0e0' : '#666';
+        Chart.defaults.color = darkMode ? '#DAF1DE' : '#163832'; /* Very light green/off-white, Medium dark green */
 
 
         // Auto-odblokowanie jeśli PIN wyłączony
@@ -468,7 +523,7 @@
             darkMode = !darkMode;
             localStorage.setItem('darkMode', darkMode);
             document.body.classList.toggle('dark-mode', darkMode);
-            Chart.defaults.color = darkMode ? '#e0e0e0' : '#666';
+            Chart.defaults.color = darkMode ? '#DAF1DE' : '#163832'; /* Very light green/off-white, Medium dark green */
             if (myChart) renderChart();
             updateThemeIcon();
         };
@@ -538,12 +593,26 @@
 
         // Helper to parse DD MM RRRR to YYYY-MM-DD
         function parseDateFromDisplay(displayDateString) {
-            if (!displayDateString) return null; // Return null for invalid date
-            const parts = displayDateString.split(' ');
+            if (!displayDateString) return null;
+            
+            // Zamień przecinki, kropki, ukośniki i myślniki na spacje, a potem usuń zbędne białe znaki
+            let cleaned = displayDateString.replace(/[.,\/-]/g, ' ').trim();
+            let parts = cleaned.split(/\s+/);
+
+            // Obsługa wpisu ciągłego (np. 23062026 lub 230626)
+            if (parts.length === 1 && (parts[0].length === 8 || parts[0].length === 6)) {
+                const s = parts[0];
+                parts = [s.substring(0, 2), s.substring(2, 4), s.substring(4)];
+            }
+
             if (parts.length === 3) {
-                const day = parseInt(parts[0]);
-                const month = parseInt(parts[1]);
-                const year = parseInt(parts[2]);
+                let day = parseInt(parts[0]);
+                let month = parseInt(parts[1]);
+                let year = parseInt(parts[2]);
+                
+                // Obsługa zapisu dwucyfrowego roku (np. 26 -> 2026)
+                if (year < 100) year += 2000;
+
                 if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
                     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 }
@@ -648,13 +717,13 @@
                     datasets: [{
                         label: 'Zarobione (zł)',
                         data: values,
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderColor: '#235347', /* Medium green */
+                        backgroundColor: 'rgba(35, 83, 71, 0.1)', /* Using #235347 */
                         borderWidth: 3,
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#28a745'
+                        pointRadius: 5, 
+                        pointBackgroundColor: '#235347' /* Medium green */
                     }]
                 },
                 options: {
@@ -677,7 +746,7 @@
                 const li = document.createElement('li');
                 li.className = 'history-item';
                 li.innerHTML = `
-                    <span style="flex-grow: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;"><strong>${entry.val.toFixed(2)} zł</strong> — <small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
+                    <span style="flex-grow: 1; text-align: left; margin-right: 10px; word-break: break-word;"><strong>${entry.val.toFixed(2)} zł</strong> — <small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
                     <div class="history-actions">
                         <button class="add-amount-button btn-small" style="background-color: #ffc107" onclick="editEntry(${originalIndex})">Edytuj</button>
                         <button class="add-amount-button btn-small" style="background-color: #dc3545" onclick="deleteEntry(${originalIndex})">Usuń</button>
@@ -890,8 +959,8 @@
             const compactData = savedEntries.map(e => [e.id, e.val, e.date, e.source]);
             const exportPackage = {
                 entries: compactData,
-                pin: currentPin,
-                pinEnabled: pinEnabled
+                pin: localStorage.getItem('appPin') || '1109',
+                pinEnabled: localStorage.getItem('pinEnabled') !== 'false'
             };
             return btoa(unescape(encodeURIComponent(JSON.stringify(exportPackage))));
         }
