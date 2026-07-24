@@ -108,8 +108,13 @@
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
-        #add-entry-button {
-            background: linear-gradient(135deg, #10B981, #059669);
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        #add-entry-button, #subtract-entry-button {
             color: white;
             border: none;
             border-radius: 50%;
@@ -117,17 +122,25 @@
             height: 60px;
             font-size: 2em;
             cursor: pointer;
-            margin-bottom: 20px;
             transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
+        }
+        #add-entry-button {
+            background: linear-gradient(135deg, #10B981, #059669);
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
         }
         #add-entry-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5); }
         #add-entry-button:active { transform: scale(0.95); }
+
+        #subtract-entry-button {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+        #subtract-entry-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.5); }
+        #subtract-entry-button:active { transform: scale(0.95); }
+
         input[type="number"] {
             padding: 10px;
             border: 1px solid #8EB69B;
@@ -172,6 +185,9 @@
             transition: transform 0.2s, box-shadow 0.2s;
             border: 1px solid #f1f5f9;
             border-left: 4px solid #10B981;
+        }
+        .history-item.subtraction {
+            border-left: 4px solid #EF4444;
         }
         .history-item:hover {
             transform: translateY(-2px); /* Lift effect on hover */
@@ -367,6 +383,7 @@
         body.dark-mode .tab-button.active { color: #DAF1DE; border-bottom-color: #DAF1DE; } /* Very light green/off-white */
         body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #10B981; }
         body.dark-mode .history-item { background-color: #1e293b; border-bottom-color: #0f172a; border-left-color: #10B981; }
+        body.dark-mode .history-item.subtraction { border-left-color: #EF4444; }
         body.dark-mode .sync-box { background-color: #0B2B26 !important; border-color: #163832 !important; } /* Dark green, Medium dark green */
         body.dark-mode .bg-animation { background-color: #020617; }
         body.dark-mode .bg-bar { background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent); }
@@ -421,7 +438,10 @@
             </div>
 
             <div id="view-start"> <!-- Domyślnie widoczna -->
-                <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
+                <div class="buttons-container">
+                    <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
+                    <button id="subtract-entry-button" title="Odejmij kwotę">-</button>
+                </div>
                 <div id="total-display">Suma: 0.00 zł</div>
                 <div id="entry-fields-container"></div>
             </div>
@@ -470,6 +490,7 @@
         let totalAmount = 0;
         const totalDisplay = document.getElementById('total-display');
         const addEntryButton = document.getElementById('add-entry-button');
+        const subtractEntryButton = document.getElementById('subtract-entry-button');
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
         let myChart = null;
@@ -744,7 +765,8 @@
             savedEntries.slice().reverse().forEach((entry, index) => {
                 const originalIndex = savedEntries.length - 1 - index;
                 const li = document.createElement('li');
-                li.className = 'history-item';
+                const isSub = entry.val < 0;
+                li.className = 'history-item' + (isSub ? ' subtraction' : '');
                 li.innerHTML = `
                     <span style="flex-grow: 1; text-align: left; margin-right: 10px; word-break: break-word;"><strong>${entry.val.toFixed(2)} zł</strong> — <small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
                     <div class="history-actions">
@@ -778,15 +800,16 @@
 
         window.editEntry = (index) => {
             const entry = savedEntries[index];
-            const newAmount = prompt("Podaj nową kwotę:", entry.val); // Keep prompt for amount simple
+            const newAmount = prompt("Podaj nową kwotę:", Math.abs(entry.val)); // Keep prompt for amount simple
             const newDateDisplay = prompt("Podaj nową datę (DD MM RRRR):", formatDateForDisplay(entry.date));
             const newSource = prompt("Podaj nowe źródło (opcjonalnie):", entry.source);
 
             const parsedAmount = parseFloat(newAmount);
             const newDate = parseDateFromDisplay(newDateDisplay); // Parse display format to ISO
             if (!isNaN(parsedAmount) && newDate) { // Check if newDate is not null
-                totalAmount = totalAmount - entry.val + parsedAmount;
-                entry.val = parsedAmount;
+                const finalVal = entry.val < 0 ? -Math.abs(parsedAmount) : Math.abs(parsedAmount);
+                totalAmount = totalAmount - entry.val + finalVal;
+                entry.val = finalVal;
                 entry.date = newDate;
                 entry.source = newSource;
                 saveToStorage();
@@ -810,10 +833,11 @@
         function refreshStartView() {
             entryFieldsContainer.innerHTML = '';
             addEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk + jest widoczny
+            subtractEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk - jest widoczny
             // Usunięto tworzenie wierszy dla zapisanych wpisów na stronie Start, aby była czysta.
         }
 
-        function createRow(initialEntry = null, isLocked = false) { // initialEntry is an object {val, date, source, id}
+        function createRow(initialEntry = null, isLocked = false, isSubtraction = false) { // initialEntry is an object {val, date, source, id}
             const row = document.createElement('div');
             row.className = 'entry-row';
             if (initialEntry && initialEntry.id) row.dataset.id = initialEntry.id;
@@ -845,7 +869,7 @@
 
             // Jeśli wczytujemy dane, blokujemy pole od razu
             if (isLocked) {
-                amountInput.value = initialEntry.val;
+                amountInput.value = Math.abs(initialEntry.val);
                 dateInput.value = formatDateForDisplay(initialEntry.date || new Date().toISOString().split('T')[0]);
                 sourceInput.value = initialEntry.source || '';
                 
@@ -861,8 +885,6 @@
 
             const submit = () => {
                 if (btn.textContent === 'Edytuj') {
-                    // Usunięto ukrywanie przycisku +, aby był zawsze widoczny
-                    // addEntryButton.classList.add('hidden'); 
                     amountInput.disabled = false;
                     dateInput.disabled = false;
                     sourceInput.disabled = false;
@@ -876,12 +898,13 @@
                     return;
                 }
 
-                const val = parseFloat(amountInput.value);
+                const rawVal = parseFloat(amountInput.value);
                 const dateDisplay = dateInput.value;
                 const date = parseDateFromDisplay(dateDisplay); // Parse display format to ISO
                 const source = sourceInput.value.trim();
 
-                if (!isNaN(val) && val !== 0 && date) { // Check if date is not null
+                if (!isNaN(rawVal) && rawVal !== 0 && date) { // Check if date is not null
+                    const val = isSubtraction ? -Math.abs(rawVal) : Math.abs(rawVal);
                     totalAmount += val;
                     currentVal = val;
                     row.dataset.id = currentId || Date.now() + Math.random();
@@ -951,7 +974,22 @@
                 }
                 return;
             }
-            createRow();
+            createRow(null, false, false);
+        });
+
+        subtractEntryButton.addEventListener('click', () => {
+            const activeInput = entryFieldsContainer.querySelector('.entry-row input:not(:disabled)');
+            
+            if (activeInput) {
+                const activeRow = activeInput.closest('.entry-row');
+                if (!activeRow.dataset.id) {
+                    animateRowOut(activeRow, () => { activeRow.remove(); });
+                } else {
+                    activeInput.focus();
+                }
+                return;
+            }
+            createRow(null, false, true);
         });
 
         // Pobiera dane w formie zakodowanego ciągu
