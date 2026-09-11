@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licznik Pieniędzy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        #total-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #28a745;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        #add-entry-button {
+            background-color: #007bff;
+            color: white;
+            margin-bottom: 20px;
+        }
+        #add-entry-button:hover {
+            background-color: #0056b3;
+        }
+        .entry-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+        .entry-row input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            width: 120px;
+        }
+        .entry-row .add-amount-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .entry-row .add-amount-button:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        .entry-row .add-amount-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Licznik Pieniędzy</h1>
+        <div id="total-display">Suma: 0.00 zł</div>
+        <button id="add-entry-button">Dodaj Kwotę</button>
+        <div id="entry-fields-container">
+            <!-- Tutaj będą dodawane nowe pola do wpisywania kwot -->
+        </div>
+    </div>
+
+    <script>
+        let totalAmount = 0;
+        const totalDisplay = document.getElementById('total-display');
+        const addEntryButton = document.getElementById('add-entry-button');
+        const entryFieldsContainer = document.getElementById('entry-fields-container');
+
+        function updateTotalDisplay() {
+            totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
+        }
+
+        addEntryButton.addEventListener('click', () => {
+            const entryRow = document.createElement('div');
+            entryRow.classList.add('entry-row');
+
+            const amountInput = document.createElement('input');
+            amountInput.type = 'number';
+            amountInput.step = '0.01';
+            amountInput.placeholder = 'Wpisz kwotę';
+
+            const addAmountButton = document.createElement('button');
+            addAmountButton.textContent = 'Dodaj';
+            addAmountButton.classList.add('add-amount-button');
+
+            addAmountButton.addEventListener('click', () => {
+                const value = parseFloat(amountInput.value);
+                if (!isNaN(value)) {
+                    totalAmount += value;
+                    updateTotalDisplay();
+                    amountInput.value = ''; // Wyczyść pole po dodaniu
+                    amountInput.disabled = true; // Wyłącz pole
+                    addAmountButton.disabled = true; // Wyłącz przycisk
+                } else {
+                    alert('Proszę wprowadzić prawidłową kwotę.');
+                }
+            });
+
+            entryRow.appendChild(amountInput);
+            entryRow.appendChild(addAmountButton);
+            entryFieldsContainer.appendChild(entryRow);
+            amountInput.focus(); // Ustaw focus na nowo dodanym polu
+        });
+
+        updateTotalDisplay(); // Inicjalizacja wyświetlacza sumy
+    </script>
+</body>
+</html>

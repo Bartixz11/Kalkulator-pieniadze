@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Licznik Pieniędzy</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#235347">
+    <meta name="theme-color" content="#12181B">
     <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Tło animowane */
+        /* Paleta Vivid Dark: Ciemne tło, jaskrawe akcenty */
+        :root {
+            --bg-main: #12181B;
+            --text-main: #FFFFFF;
+            --text-muted: #A0AAB2;
+            --card-bg: #1B2429;
+            --card-border: #2C3A41;
+            
+            /* Żywe akcenty */
+            --accent-primary: #00D26A;
+            --accent-primary-hover: #00B359;
+            --accent-danger: #FF4D4D;
+            --accent-danger-hover: #E63939;
+            --accent-blue: #0A84FF;
+            --accent-purple: #8A2BE2;
+            
+            --tab-bg: #12181B;
+            --input-bg: #0F1417;
+            --input-border: #2C3A41;
+        }
+
+        /* Tło animacji z mocniejszą nutą zieleni */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -18,43 +39,42 @@
             height: 100%;
             z-index: -1;
             overflow: hidden;
-            background: radial-gradient(circle at top right, #DAF1DE, #E8F5E9, #f0fdf4);
+            background: var(--bg-main);
         }
         .bg-bar {
             position: absolute;
             width: 300%;
             height: 350px;
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.15), transparent);
+            background: linear-gradient(90deg, transparent, rgba(0, 210, 106, 0.06), transparent);
             transform: rotate(-25deg);
-            filter: blur(80px);
-            animation: flow 25s linear infinite;
+            filter: blur(100px);
+            animation: flow 40s linear infinite;
         }
-        .bar1 { top: -5%; left: -150%; background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.2), transparent); }
-        .bar2 { bottom: -5%; left: -120%; animation-duration: 40s; animation-direction: reverse; opacity: 0.5; }
+        .bar1 { top: -5%; left: -150%; }
+        .bar2 { bottom: -5%; left: -120%; animation-duration: 60s; animation-direction: reverse; opacity: 0.4; }
 
         @keyframes flow {
             0% { transform: translateX(0) rotate(-25deg); }
-            100% { transform: translateX(40%) rotate(-25deg); }
+            100% { transform: translateX(30%) rotate(-25deg); }
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
             margin: 0;
-            background-color: #f0fdf4; 
-            color: #064E3B;
+            background-color: var(--bg-main); 
+            color: var(--text-main);
             min-height: 100vh;
         }
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: var(--card-bg);
             padding: 25px;
-            border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
             text-align: center;
             width: 100%;
             max-width: 450px;
@@ -65,48 +85,47 @@
         @media (min-width: 600px) {
             .container {
                 max-width: 550px;
-                padding: 40px;
+                padding: 35px;
             }
         }
         .tabs {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
-            background: #f1f5f9;
-            padding: 5px;
-            border-radius: 15px;
-            gap: 5px;
+            margin-bottom: 25px;
+            background: var(--tab-bg);
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
         }
         .tab-button {
-            padding: 8px 16px;
+            padding: 9px 16px;
             cursor: pointer;
             background: none;
             border: none;
-            font-size: 0.95em;
-            color: #64748b;
-            transition: all 0.3s;
-            border-radius: 10px;
+            font-size: 0.9em;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            border-radius: 8px;
         }
-        .tab-button:hover { color: #059669; background: rgba(16, 185, 129, 0.1); }
+        .tab-button:hover { color: var(--text-main); }
         .tab-button.active {
-            color: #ffffff;
-            background: #10B981;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            color: #FFFFFF;
+            background: var(--accent-primary);
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0, 210, 106, 0.3);
         }
         h1 {
-            color: #064E3B;
+            color: var(--text-main);
             margin-bottom: 20px;
-            font-size: 1.8em;
+            font-size: 1.5em;
+            font-weight: 600;
         }
         #total-display {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #059669 0%, #D97706 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--accent-primary);
+            text-shadow: 0 2px 15px rgba(0, 210, 106, 0.2);
         }
         .buttons-container {
             display: flex;
@@ -115,57 +134,67 @@
             margin-bottom: 20px;
         }
         #add-entry-button, #subtract-entry-button {
-            color: white;
+            color: #FFFFFF;
             border: none;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 2em;
+            width: 54px;
+            height: 54px;
+            font-size: 1.7em;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            transition: background-color 0.2s ease, transform 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        #add-entry-button:active, #subtract-entry-button:active {
+            transform: scale(0.92);
         }
         #add-entry-button {
-            background: linear-gradient(135deg, #10B981, #059669);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            background: var(--accent-primary);
         }
-        #add-entry-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5); }
-        #add-entry-button:active { transform: scale(0.95); }
+        #add-entry-button:hover { 
+            background: var(--accent-primary-hover);
+        }
 
         #subtract-entry-button {
-            background: linear-gradient(135deg, #EF4444, #DC2626);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            background: var(--accent-danger);
         }
-        #subtract-entry-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 35px rgba(239, 68, 68, 0.5); }
-        #subtract-entry-button:active { transform: scale(0.95); }
+        #subtract-entry-button:hover { 
+            background: var(--accent-danger-hover);
+        }
 
-        input[type="number"] {
-            padding: 10px;
-            border: 1px solid #8EB69B;
-            border-radius: 6px;
-            font-size: 1em;
-            flex-grow: 1;
+        input[type="number"], input[type="text"], input[type="password"] {
+            padding: 10px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 0.95em;
+            background: var(--input-bg);
+            color: var(--text-main);
+            box-sizing: border-box;
+            transition: border-color 0.2s;
         }
-        /* Modernistic input focus - un-nested for mobile compatibility */
-        input[type="number"]:focus {
+        input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
-            border-color: #10B981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(0, 210, 106, 0.2);
         }
         .add-amount-button {
-            padding: 12px 20px;
-            background: #10B981;
-            color: white;
+            padding: 10px 18px;
+            background: var(--accent-primary);
+            color: #FFFFFF;
             border: none;
-            border-radius: 6px;
-            transition: background-color 0.3s, transform 0.1s;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.1s;
             cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        .add-amount-button:disabled {
-            background-color: #ccc;
-            cursor: default;
+        .add-amount-button:hover {
+            background: var(--accent-primary-hover);
+        }
+        .add-amount-button:active {
+            transform: scale(0.96);
         }
         .history-list {
             text-align: left;
@@ -173,33 +202,27 @@
             padding: 0;
         }
         .history-item {
-            padding: 10px;
-            border-left: 4px solid #8EB69B;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 8px; /* Rounded corners */
-            margin-bottom: 8px; /* Space between items */
-            background-color: #ffffff;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #f1f5f9;
-            border-left: 4px solid #10B981;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--accent-primary);
         }
         .history-item.subtraction {
-            border-left: 4px solid #EF4444;
-        }
-        .history-item:hover {
-            transform: translateY(-2px); /* Lift effect on hover */
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08); /* More pronounced shadow on hover */
+            border-left-color: var(--accent-danger);
         }
         .history-actions {
             display: flex;
-            gap: 5px;
+            gap: 6px;
         }
         .btn-small {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 0.8em;
+            border-radius: 6px;
         }
 
         .selection-menu {
@@ -207,196 +230,162 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 300px;
+            min-height: 250px;
+        }
+
+        .sets-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 15px;
         }
 
         .set-option {
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s;
+            position: relative;
         }
-        .set-option:hover {
-            transform: scale(1.1);
-        }
+
         .circle-btn {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
+            background: var(--accent-primary);
+            color: #FFFFFF;
             border: none;
-            font-size: 3em;
+            font-size: 2.2em;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3), inset 0 4px 10px rgba(255,255,255,0.2);
             cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 210, 106, 0.25);
         }
-        .set-label {
-            margin-top: 12px;
-            font-weight: bold;
-            color: #064E3B;
-            font-size: 1.1em;
+        .circle-btn:active {
+            transform: scale(0.92);
         }
         .set-option:hover .circle-btn {
-            box-shadow: 0 20px 40px rgba(35, 83, 71, 0.45);
+            background: var(--accent-primary-hover);
+            box-shadow: 0 6px 20px rgba(0, 210, 106, 0.4);
+        }
+        .set-label {
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: var(--text-main);
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        /* Animation for new rows */
+        .add-set-btn {
+            background: transparent !important;
+            border: 2px dashed var(--input-border) !important;
+            color: var(--text-muted) !important;
+            box-shadow: none !important;
+        }
+        .add-set-btn:hover {
+            border-color: var(--accent-primary) !important;
+            color: var(--text-main) !important;
+        }
+
         .entry-row {
             display: flex;
-            flex-direction: column; /* Changed to column for better stacking of inputs */
-            gap: 8px; /* Smaller gap for vertical stacking */
+            flex-direction: column;
+            gap: 8px;
             margin-bottom: 12px;
-            align-items: center; /* Center items horizontally */
-            max-height: 0; /* Initial state for animation */
-            opacity: 0; /* Initial state for animation */
+            align-items: center;
+            max-height: 0;
+            opacity: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
         }
         .entry-row.show {
-            max-height: 150px; /* Sufficient height for all elements in the row */
+            max-height: 150px;
             opacity: 1;
         }
-
-        .entry-row .input-group { /* Group inputs and buttons horizontally */
+        .entry-row .input-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            width: 100%; /* Take full width of parent column */
-            flex-wrap: wrap; /* Allow wrapping if too wide */
+            width: 100%;
+            flex-wrap: wrap;
         }
 
         .entry-row input[type="date"],
         .entry-row input[type="text"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1em;
-            flex-grow: 1; /* Allow inputs to grow */
-            min-width: 100px; /* Minimum width for inputs */
-            max-width: 150px; /* Max width for inputs */
+            min-width: 100px;
+            max-width: 150px;
         }
-        /* Modernistic input focus - un-nested for mobile compatibility */
-        .entry-row input[type="date"]:focus,
-        .entry-row input[type="text"]:focus {
-            outline: none;
-            border-color: #235347;
-            box-shadow: 0 0 0 4px rgba(35, 83, 71, 0.15), 0 4px 10px rgba(0,0,0,0.05);
-        }
+
         #pin-input {
-            font-size: 2em;
+            font-size: 1.6em;
             text-align: center;
-            width: 150px;
-            padding: 10px;
-            border-radius: 6px; /* Consistent with other inputs */
-            border: 1px solid #8EB69B; /* Light green/grey-green */
+            width: 140px;
             margin-bottom: 20px;
+            letter-spacing: 4px;
         }
-        .admin-actions {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #8EB69B; /* Light green/grey-green */
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+        
         .sync-box {
-            background: #DAF1DE; /* Very light green/off-white */
-            padding: 15px;
+            background: var(--input-bg);
+            padding: 16px;
             border-radius: 10px;
             width: 100%;
-            margin-bottom: 10px;
-            border: 1px solid #8EB69B; /* Light green/grey-green */
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border: 1px solid var(--card-border);
+            box-sizing: border-box;
+            text-align: left;
         }
-        .refresh-btn {
+        .refresh-btn, .settings-btn, .theme-btn, .sets-btn {
             position: absolute;
             top: 15px;
-            right: 15px;
-            background: #DAF1DE; /* Very light green/off-white */
-            border: 1px solid #8EB69B; /* Light green/grey-green */
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
             border-radius: 50%;
-            width: 35px;
-            height: 35px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: background-color 0.2s ease, border-color 0.2s;
             z-index: 100;
         }
-        .refresh-btn:hover {
-            background-color: #DAF1DE;
-            transform: rotate(90deg);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+        .refresh-btn { right: 15px; }
+        .settings-btn { right: 58px; }
+        .sets-btn { right: 101px; }
+        .theme-btn { right: 144px; }
+
+        .refresh-btn:hover, .settings-btn:hover, .theme-btn:hover, .sets-btn:hover {
+            background-color: var(--tab-bg);
+            border-color: var(--accent-primary);
         }
-        .settings-btn {
-            position: absolute;
-            top: 15px;
-            right: 60px;
-            background: #ffffff;
-            border: 1px solid #DAF1DE;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 100;
+
+        /* Tryb OLED Black (Prawdziwa Czerń, Jaskrawe Kontrasty) */
+        body.dark-mode { 
+            --bg-main: #000000;
+            --text-main: #FFFFFF;
+            --text-muted: #888888;
+            --card-bg: #0A0A0A;
+            --card-border: #1F1F1F;
+            --tab-bg: #050505;
+            --input-bg: #050505;
+            --input-border: #1F1F1F;
+        } 
+        body.dark-mode .bg-animation { 
+            background: #000000; 
         }
-        .settings-btn:hover {
-            background-color: #DAF1DE;
-            transform: rotate(45deg);
-        }
-        .theme-btn {
-            position: absolute;
-            top: 15px;
-            right: 105px;
-            background: #ffffff;
-            border: 1px solid #DAF1DE;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-        .theme-btn:hover {
-            background-color: #DAF1DE;
-        }
-        /* Tryb Ciemny */
-        body.dark-mode { background-color: #020617; color: #E2E8F0; } 
-        body.dark-mode .container { background: rgba(15, 23, 42, 0.9); border-color: rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        body.dark-mode .tab-button { color: #94A3B8; }
-        body.dark-mode .tab-button.active { color: #DAF1DE; border-bottom-color: #DAF1DE; } /* Very light green/off-white */
-        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #10B981; }
-        body.dark-mode .history-item { background-color: #1e293b; border-bottom-color: #0f172a; border-left-color: #10B981; }
-        body.dark-mode .history-item.subtraction { border-left-color: #EF4444; }
-        body.dark-mode .sync-box { background-color: #0B2B26 !important; border-color: #163832 !important; } /* Dark green, Medium dark green */
-        body.dark-mode .bg-animation { background-color: #020617; }
-        body.dark-mode .bg-bar { background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent); }
-        body.dark-mode .sync-box h4, body.dark-mode .sync-box span { color: #DAF1DE !important; } /* Very light green/off-white */
-        body.dark-mode input { background-color: #0B2B26 !important; color: #DAF1DE !important; border-color: #163832 !important; } /* Dark green, Very light green/off-white, Medium dark green */
-        body.dark-mode .refresh-btn, body.dark-mode .settings-btn, body.dark-mode .theme-btn { background: #0B2B26; border-color: #163832; color: #DAF1DE; } /* Dark green, Medium dark green, Very light green/off-white */
 
         .hidden { display: none !important; }
 
         #chart-container {
             width: 100%;
-            height: 300px;
-            margin-top: 20px;
+            height: 280px;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -407,28 +396,27 @@
     </div>
     <div class="container">
         <button id="theme-toggle-btn" class="theme-btn" onclick="toggleDarkMode()" title="Zmień motyw">🌙</button>
+        <button id="sets-icon" class="sets-btn hidden" onclick="goToSets()" title="Zmień cel">🎯</button>
         <button id="settings-icon" class="settings-btn hidden" onclick="showTab('settings')" title="Ustawienia">⚙️</button>
         <button class="refresh-btn" onclick="location.reload()" title="Odśwież aplikację">🔄</button>
         <h1>Licznik Pieniędzy</h1>
         
         <!-- Ekran blokady PIN -->
         <div id="view-pin" class="selection-menu">
-            <h2 style="color: #0056b3; margin-bottom: 20px;">🔒 Podaj PIN</h2>
+            <h2 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.1em; font-weight: normal;">🔒 Podaj PIN</h2>
             <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="****">
-            <button class="add-amount-button" style="width: 150px; font-weight: bold;" onclick="checkPin()">Wejdź</button>
+            <button class="add-amount-button" style="width: 140px; margin-top: 10px;" onclick="checkPin()">Wejdź</button>
         </div>
 
-        <!-- Menu wyboru - ukryte na starcie -->
+        <!-- Menu wyboru celów -->
         <div id="view-selection" class="selection-menu hidden">
-            <div class="set-option" onclick="openApp('Komputer')">
-                <button class="circle-btn">💻</button>
-                <span class="set-label">Komputer</span>
-            </div>
+            <h2 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.05em; font-weight: 500;">Wybierz lub dodaj cel</h2>
+            <div id="sets-container" class="sets-grid"></div>
         </div>
 
-        <!-- Główna zawartość - pojawia się po kliknięciu -->
+        <!-- Główna zawartość -->
         <div id="app-content" class="hidden">
-            <h2 id="current-set-title" style="color: #666; margin-bottom: 20px;"></h2>
+            <h2 id="current-set-title" style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95em; font-weight: normal;"></h2>
             
             <div class="tabs">
                 <button class="tab-button active" onclick="showTab('start')">Start</button>
@@ -437,7 +425,7 @@
                 <button class="tab-button" onclick="showTab('transfer')">Kod</button>
             </div>
 
-            <div id="view-start"> <!-- Domyślnie widoczna -->
+            <div id="view-start">
                 <div class="buttons-container">
                     <button id="add-entry-button" title="Dodaj nową kwotę">+</button>
                     <button id="subtract-entry-button" title="Odejmij kwotę">-</button>
@@ -446,40 +434,46 @@
                 <div id="entry-fields-container"></div>
             </div>
 
-            <div id="view-history" class="hidden"> <!-- Domyślnie ukryta -->
-                <h3>Historia wpisów</h3>
+            <div id="view-history" class="hidden">
+                <h3 style="font-size: 1em; color: var(--text-main); font-weight: 600; text-align: center;">Historia wpisów</h3>
                 <ul id="history-list" class="history-list"></ul>
             </div>
 
             <div id="view-chart" class="hidden">
-                <h3>Zarobki miesięczne</h3>
+                <h3 style="font-size: 1em; color: var(--text-main); font-weight: 600; text-align: center;">Zarobki miesięczne</h3>
                 <div id="chart-container">
                     <canvas id="moneyChart"></canvas>
                 </div>
             </div>
 
-            <div id="view-transfer" class="hidden"> <!-- Nowa zakładka Kod -->
-                <h3>Transfer Danych</h3>
-                <div class="sync-box" style="background: #fff3cd; border-color: #ffeeba; margin-top: 15px;">
-                    <h4 style="margin-top:0; color:#856404; font-size: 0.9em;">📲 Transfer ręczny kodem</h4>
-                    <button class="add-amount-button btn-small" style="background-color: #856404; width: 100%; margin-bottom: 8px;" onclick="copyDataString()">Kopiuj kod do schowka</button>
-                    <button class="add-amount-button btn-small" style="background-color: #007bff; width: 100%; margin-bottom: 8px;" onclick="shareDataCode()">Udostępnij kod (Messenger/WhatsApp)</button>
-                    <button class="add-amount-button btn-small" style="background-color: #6c757d; width: 100%;" onclick="importFromText()">Wklej kod danych z innego urządzenia</button>
+            <div id="view-transfer" class="hidden">
+                <h3 style="font-size: 1em; color: var(--text-main); font-weight: 600; text-align: center;">Transfer Danych</h3>
+                <div class="sync-box">
+                    <h4 style="margin-top:0; color: var(--text-main); font-size: 0.85em; font-weight: 600;">📲 Transfer ręczny kodem</h4>
+                    <button class="add-amount-button btn-small" style="background-color: var(--accent-primary); width: 100%; margin-bottom: 8px;" onclick="copyDataString()">Kopiuj kod do schowka</button>
+                    <button class="add-amount-button btn-small" style="background-color: var(--accent-blue); width: 100%; margin-bottom: 8px;" onclick="shareDataCode()">Udostępnij kod</button>
+                    <button class="add-amount-button btn-small" style="background-color: var(--accent-purple); width: 100%;" onclick="importFromText()">Wklej kod danych</button>
                 </div>
             </div>
 
-            <div id="view-settings" class="hidden"> <!-- Nowa zakładka Ustawienia -->
-                <h3>Ustawienia</h3>
-                <div class="sync-box" style="background: #e2e3e5; border-color: #d6d8db; margin-top: 15px;">
-                    <h4 style="margin-top:0; color:#383d41; font-size: 0.9em;">🔒 Zabezpieczenie PIN</h4>
-                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+            <div id="view-settings" class="hidden">
+                <h3 style="font-size: 1em; color: var(--text-main); font-weight: 600; text-align: center;">Ustawienia</h3>
+                
+                <div class="sync-box">
+                    <h4 style="margin-top:0; color: var(--text-main); font-size: 0.85em; font-weight: 600; margin-bottom: 12px;">🎯 Usuwanie celów</h4>
+                    <div id="settings-sets-list"></div>
+                </div>
+
+                <div class="sync-box">
+                    <h4 style="margin-top:0; color: var(--text-main); font-size: 0.85em; font-weight: 600;">🔒 Zabezpieczenie PIN</h4>
+                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 0.9em;">
                         <input type="checkbox" id="pin-toggle" onchange="togglePinRequirement()"> 
                         <span>Włącz blokadę PIN</span>
                     </label>
                     <div id="pin-change-section">
-                        <input type="password" id="new-pin-1" placeholder="Nowy PIN (4 cyfry)" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 5px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
-                        <input type="password" id="new-pin-2" placeholder="Powtórz nowy PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 8px; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;">
-                        <button class="add-amount-button btn-small" style="background-color: #007bff; width: 100%;" onclick="changeAppPin()">Zmień PIN</button>
+                        <input type="password" id="new-pin-1" placeholder="Nowy PIN (4 cyfry)" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 8px;">
+                        <input type="password" id="new-pin-2" placeholder="Powtórz nowy PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="width: 100%; margin-bottom: 12px;">
+                        <button class="add-amount-button btn-small" style="width: 100%; background-color: var(--accent-blue);" onclick="changeAppPin()">Zmień PIN</button>
                     </div>
                 </div>
             </div>
@@ -488,51 +482,61 @@
 
     <script>
         let totalAmount = 0;
+        let savedEntries = [];
+        let currentSetId = 'komputer';
+        let myChart = null;
+
         const totalDisplay = document.getElementById('total-display');
         const addEntryButton = document.getElementById('add-entry-button');
         const subtractEntryButton = document.getElementById('subtract-entry-button');
         const entryFieldsContainer = document.getElementById('entry-fields-container');
         const historyList = document.getElementById('history-list');
-        let myChart = null;
 
-        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.error("SW Registration failed", err));
         }
 
-        // Inicjalizacja zabezpieczeń
+        let appSets = JSON.parse(localStorage.getItem('appSets') || 'null');
+        if (!appSets || !Array.isArray(appSets) || appSets.length === 0) {
+            appSets = [{ id: 'komputer', name: 'Komputer', icon: '💻' }];
+            localStorage.setItem('appSets', JSON.stringify(appSets));
+        }
+
+        const legacyEntries = localStorage.getItem('moneyEntries');
+        if (legacyEntries && !localStorage.getItem('moneyEntries_komputer')) {
+            localStorage.setItem('moneyEntries_komputer', legacyEntries);
+        }
+
         let currentPin = localStorage.getItem('appPin') || '1109';
         let pinEnabled = localStorage.getItem('pinEnabled') !== 'false';
         let lastActiveTab = 'selection';
 
-        // Inicjalizacja Trybu Ciemnego
         let darkMode = localStorage.getItem('darkMode') === 'true';
         if (darkMode) document.body.classList.add('dark-mode');
 
         function updateThemeIcon() {
             const btn = document.getElementById('theme-toggle-btn');
-            if (btn) {
-                btn.textContent = darkMode ? '☀️' : '🌙';
-            }
+            if (btn) btn.textContent = darkMode ? '☀️' : '🌙';
         }
         updateThemeIcon();
-        Chart.defaults.color = darkMode ? '#DAF1DE' : '#163832'; /* Very light green/off-white, Medium dark green */
+        Chart.defaults.color = '#FFFFFF';
 
-
-        // Auto-odblokowanie jeśli PIN wyłączony
         if (!pinEnabled) {
             document.getElementById('view-pin').classList.add('hidden');
             document.getElementById('view-selection').classList.remove('hidden');
             document.getElementById('settings-icon').classList.remove('hidden');
+            document.getElementById('sets-icon').classList.remove('hidden');
+            renderSetsList();
         }
 
-        // Logika sprawdzania PINu
         window.checkPin = () => {
             const pinInput = document.getElementById('pin-input');
             if (pinInput.value === currentPin) {
                 document.getElementById('view-pin').classList.add('hidden');
                 document.getElementById('view-selection').classList.remove('hidden');
                 document.getElementById('settings-icon').classList.remove('hidden');
+                document.getElementById('sets-icon').classList.remove('hidden');
+                renderSetsList();
             } else {
                 alert('Błędny PIN!');
                 pinInput.value = '';
@@ -540,11 +544,132 @@
             }
         };
 
+        function renderSetsList() {
+            const container = document.getElementById('sets-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            appSets.forEach(set => {
+                const item = document.createElement('div');
+                item.className = 'set-option';
+                item.innerHTML = `
+                    <button class="circle-btn" onclick="openApp('${set.id}')">${set.icon || '🎯'}</button>
+                    <span class="set-label">${set.name}</span>
+                `;
+                container.appendChild(item);
+            });
+
+            const addBtn = document.createElement('div');
+            addBtn.className = 'set-option';
+            addBtn.innerHTML = `
+                <button class="circle-btn add-set-btn" onclick="addNewSet()">+</button>
+                <span class="set-label">Nowy cel</span>
+            `;
+            container.appendChild(addBtn);
+        }
+
+        function renderSettingsSetsList() {
+            const container = document.getElementById('settings-sets-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (appSets.length <= 1) {
+                container.innerHTML = '<p style="font-size: 0.85em; color: var(--text-muted); margin: 0;">Musisz posiadać co najmniej jeden cel, aby móc go usunąć.</p>';
+                return;
+            }
+
+            appSets.forEach(set => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.alignItems = 'center';
+                row.style.marginBottom = '8px';
+                row.style.padding = '8px 12px';
+                row.style.background = 'var(--card-bg)';
+                row.style.borderRadius = '8px';
+                row.style.border = '1px solid var(--card-border)';
+
+                row.innerHTML = `
+                    <span style="font-size: 0.9em; font-weight: 500; color: var(--text-main);">${set.icon || '🎯'} ${set.name}</span>
+                    <button class="add-amount-button btn-small" style="background-color: var(--accent-danger);" onclick="deleteSet('${set.id}')">Usuń</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        window.addNewSet = () => {
+            const name = prompt("Podaj nazwę nowego celu (np. Wakacje, Samochód, Telefon):");
+            if (!name || !name.trim()) return;
+
+            const icon = prompt("Podaj emoji/ikonkę dla tego celu (opcjonalnie):", "🎯");
+            const newSet = {
+                id: 'set_' + Date.now(),
+                name: name.trim(),
+                icon: (icon && icon.trim()) ? icon.trim() : '🎯'
+            };
+
+            appSets.push(newSet);
+            localStorage.setItem('appSets', JSON.stringify(appSets));
+            renderSetsList();
+            renderSettingsSetsList();
+        };
+
+        window.deleteSet = (setId) => {
+            const setObj = appSets.find(s => s.id === setId);
+            if (!setObj) return;
+
+            if (confirm(`Czy na pewno chcesz usunąć cel "${setObj.name}" i WSZYSTKIE jego zapisane kwoty?`)) {
+                appSets = appSets.filter(s => s.id !== setId);
+                localStorage.setItem('appSets', JSON.stringify(appSets));
+                localStorage.removeItem('moneyEntries_' + setId);
+
+                if (currentSetId === setId && appSets.length > 0) {
+                    currentSetId = appSets[0].id;
+                    const newSetObj = appSets[0];
+                    document.getElementById('current-set-title').textContent = `${newSetObj.icon} Cel: ${newSetObj.name}`;
+                    loadEntriesForCurrentSet();
+                }
+
+                renderSetsList();
+                renderSettingsSetsList();
+            }
+        };
+
+        window.goToSets = () => {
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('view-selection').classList.remove('hidden');
+            renderSetsList();
+        };
+
+        window.openApp = (setId) => {
+            currentSetId = setId;
+            const setObj = appSets.find(s => s.id === setId) || { name: 'Cel', icon: '🎯' };
+
+            document.getElementById('view-selection').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('settings-icon').classList.remove('hidden');
+            document.getElementById('sets-icon').classList.remove('hidden');
+            document.getElementById('current-set-title').textContent = `${setObj.icon} Cel: ${setObj.name}`;
+            
+            loadEntriesForCurrentSet();
+            showTab('start');
+        };
+
+        function loadEntriesForCurrentSet() {
+            let raw = JSON.parse(localStorage.getItem('moneyEntries_' + currentSetId) || '[]');
+            savedEntries = raw.map(e => typeof e === 'object' ? e : { id: Date.now() + Math.random(), val: e });
+            saveToStorage();
+
+            totalAmount = 0;
+            savedEntries.forEach(entry => { totalAmount += entry.val; });
+            updateTotal();
+            refreshStartView();
+        }
+
         window.toggleDarkMode = () => {
             darkMode = !darkMode;
             localStorage.setItem('darkMode', darkMode);
             document.body.classList.toggle('dark-mode', darkMode);
-            Chart.defaults.color = darkMode ? '#DAF1DE' : '#163832'; /* Very light green/off-white, Medium dark green */
             if (myChart) renderChart();
             updateThemeIcon();
         };
@@ -580,47 +705,24 @@
             if (e.key === 'Enter') checkPin();
         });
 
-        // Wczytywanie i migracja danych (obsługa starego formatu danych)
-        let raw = JSON.parse(localStorage.getItem('moneyEntries') || '[]');
-        let savedEntries = raw.map(e => typeof e === 'object' ? e : { id: Date.now() + Math.random(), val: e });
-        localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
-
         function updateTotal() {
             totalDisplay.textContent = `Suma: ${totalAmount.toFixed(2)} zł`;
         }
 
-        // Funkcja otwierająca konkretny zestaw
-        window.openApp = (setName) => {
-            // Ukrywamy menu wyboru
-            document.getElementById('view-selection').classList.add('hidden');
-            // Pokazujemy aplikację
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('settings-icon').classList.remove('hidden');
-            // Ustawiamy tytuł zestawu
-            document.getElementById('current-set-title').textContent = "Zestaw: " + setName;
-            
-            showTab('start'); // Domyślnie otwieramy zakładkę 'Start'
-        };
-
-        // Helper to format YYYY-MM-DD to DD MM RRRR
         function formatDateForDisplay(isoDateString) {
             if (!isoDateString) return '';
             const parts = isoDateString.split('-');
             if (parts.length === 3) {
                 return `${parts[2].padStart(2, '0')} ${parts[1].padStart(2, '0')} ${parts[0]}`;
             }
-            return isoDateString; // Fallback
+            return isoDateString;
         }
 
-        // Helper to parse DD MM RRRR to YYYY-MM-DD
         function parseDateFromDisplay(displayDateString) {
             if (!displayDateString) return null;
-            
-            // Zamień przecinki, kropki, ukośniki i myślniki na spacje, a potem usuń zbędne białe znaki
             let cleaned = displayDateString.replace(/[.,\/-]/g, ' ').trim();
             let parts = cleaned.split(/\s+/);
 
-            // Obsługa wpisu ciągłego (np. 23062026 lub 230626)
             if (parts.length === 1 && (parts[0].length === 8 || parts[0].length === 6)) {
                 const s = parts[0];
                 parts = [s.substring(0, 2), s.substring(2, 4), s.substring(4)];
@@ -630,25 +732,22 @@
                 let day = parseInt(parts[0]);
                 let month = parseInt(parts[1]);
                 let year = parseInt(parts[2]);
-                
-                // Obsługa zapisu dwucyfrowego roku (np. 26 -> 2026)
                 if (year < 100) year += 2000;
 
                 if (!isNaN(day) && !isNaN(month) && !isNaN(year) && day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
                     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 }
             }
-            return null; // Indicate invalid date
+            return null;
         }
 
         function saveToStorage() {
-            localStorage.setItem('moneyEntries', JSON.stringify(savedEntries));
+            localStorage.setItem('moneyEntries_' + currentSetId, JSON.stringify(savedEntries));
         }
 
         function showTab(tabName) {
             const settingsView = document.getElementById('view-settings');
             
-            // Jeśli ustawienia są już otwarte i klikamy w zębatkę ponownie - wróć do poprzedniej zakładki
             if (tabName === 'settings' && !settingsView.classList.contains('hidden')) {
                 if (lastActiveTab === 'selection') {
                     settingsView.classList.add('hidden');
@@ -660,18 +759,11 @@
                 return;
             }
 
-            // Dezaktywuj wszystkie przyciski zakładek
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
 
-            // Aktywuj kliknięty przycisk zakładki (jeśli istnieje w dolnym menu)
             const activeTabBtn = document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`);
-            if (activeTabBtn) {
-                activeTabBtn.classList.add('active');
-            }
+            if (activeTabBtn) activeTabBtn.classList.add('active');
 
-            // Ukryj wszystkie widoki
             document.getElementById('view-start').classList.add('hidden');
             document.getElementById('view-history').classList.add('hidden');
             document.getElementById('view-transfer').classList.add('hidden');
@@ -679,7 +771,6 @@
             document.getElementById('view-settings').classList.add('hidden');
             document.getElementById('view-selection').classList.add('hidden');
 
-            // Pokaż wybrany widok
             if (tabName !== 'selection') {
                 if (document.getElementById(`view-${tabName}`)) 
                 document.getElementById(`view-${tabName}`).classList.remove('hidden');
@@ -689,35 +780,25 @@
                 document.getElementById('app-content').classList.add('hidden');
             }
 
-            // Zapamiętaj zakładkę jako ostatnią aktywną (pod warunkiem, że to nie ustawienia)
-            if (tabName !== 'settings' && tabName !== 'selection') {
-                lastActiveTab = tabName;
-            } else if (tabName === 'selection') {
-                lastActiveTab = 'selection';
-            }
+            if (tabName !== 'settings' && tabName !== 'selection') lastActiveTab = tabName;
+            else if (tabName === 'selection') lastActiveTab = 'selection';
 
-            if (tabName === 'history') {
-                renderHistory(); // Odśwież historię tylko, gdy przechodzimy do zakładki historii
-            }
-
-            if (tabName === 'chart') {
-                renderChart();
-            }
+            if (tabName === 'history') renderHistory();
+            if (tabName === 'chart') renderChart();
 
             if (tabName === 'settings') {
                 document.getElementById('pin-toggle').checked = pinEnabled;
                 document.getElementById('pin-change-section').classList.toggle('hidden', !pinEnabled);
+                renderSettingsSetsList();
             }
         }
 
         function renderChart() {
             const ctx = document.getElementById('moneyChart').getContext('2d');
-            
-            // Grupowanie danych po miesiącach
             const monthlyData = {};
             savedEntries.forEach(entry => {
                 if (!entry.date) return;
-                const monthKey = entry.date.substring(0, 7); // Format YYYY-MM
+                const monthKey = entry.date.substring(0, 7);
                 monthlyData[monthKey] = (monthlyData[monthKey] || 0) + entry.val;
             });
 
@@ -731,6 +812,9 @@
 
             if (myChart) myChart.destroy();
 
+            const chartColor = '#00D26A'; // Żywy, neonowy zielony
+            const bgFill = darkMode ? 'rgba(0, 210, 106, 0.15)' : 'rgba(0, 210, 106, 0.1)';
+
             myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -738,40 +822,44 @@
                     datasets: [{
                         label: 'Zarobione (zł)',
                         data: values,
-                        borderColor: '#235347', /* Medium green */
-                        backgroundColor: 'rgba(35, 83, 71, 0.1)', /* Using #235347 */
+                        borderColor: chartColor,
+                        backgroundColor: bgFill,
                         borderWidth: 3,
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 5, 
-                        pointBackgroundColor: '#235347' /* Medium green */
+                        pointRadius: 4, 
+                        pointBackgroundColor: chartColor
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            grid: { color: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)' }
+                        }
                     }
                 }
             });
         }
 
         function renderHistory() {
-            historyList.innerHTML = savedEntries.length === 0 ? '<li>Brak wpisów</li>' : '';
+            historyList.innerHTML = savedEntries.length === 0 ? '<li style="color: var(--text-muted); text-align: center;">Brak wpisów</li>' : '';
             savedEntries.slice().reverse().forEach((entry, index) => {
                 const originalIndex = savedEntries.length - 1 - index;
                 const li = document.createElement('li');
                 const isSub = entry.val < 0;
                 li.className = 'history-item' + (isSub ? ' subtraction' : '');
                 li.innerHTML = `
-                    <span style="flex-grow: 1; text-align: left; margin-right: 10px; word-break: break-word;"><strong>${entry.val.toFixed(2)} zł</strong> — <small>${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
+                    <span style="flex-grow: 1; text-align: left; margin-right: 10px; word-break: break-word;"><strong>${entry.val.toFixed(2)} zł</strong> — <small style="color: var(--text-muted);">${formatDateForDisplay(entry.date) || 'Brak daty'}${entry.source ? ' - ' + entry.source : ''}</small></span>
                     <div class="history-actions">
-                        <button class="add-amount-button btn-small" style="background-color: #ffc107" onclick="editEntry(${originalIndex})">Edytuj</button>
-                        <button class="add-amount-button btn-small" style="background-color: #dc3545" onclick="deleteEntry(${originalIndex})">Usuń</button>
+                        <button class="add-amount-button btn-small" style="background-color: var(--accent-blue)" onclick="editEntry(${originalIndex})">Edytuj</button>
+                        <button class="add-amount-button btn-small" style="background-color: var(--accent-danger)" onclick="deleteEntry(${originalIndex})">Usuń</button>
                     </div>
                 `;
                 historyList.appendChild(li);
@@ -781,7 +869,6 @@
         window.deleteEntry = (index) => {
             if (!confirm("Czy na pewno chcesz usunąć ten wpis?")) return;
             const entry = savedEntries[index];
-            // Znajdź wiersz w DOM, aby go animować
             const row = entryFieldsContainer.querySelector(`.entry-row[data-id="${entry.id}"]`);
             
             const performDelete = () => {
@@ -800,13 +887,13 @@
 
         window.editEntry = (index) => {
             const entry = savedEntries[index];
-            const newAmount = prompt("Podaj nową kwotę:", Math.abs(entry.val)); // Keep prompt for amount simple
+            const newAmount = prompt("Podaj nową kwotę:", Math.abs(entry.val));
             const newDateDisplay = prompt("Podaj nową datę (DD MM RRRR):", formatDateForDisplay(entry.date));
             const newSource = prompt("Podaj nowe źródło (opcjonalnie):", entry.source);
 
             const parsedAmount = parseFloat(newAmount);
-            const newDate = parseDateFromDisplay(newDateDisplay); // Parse display format to ISO
-            if (!isNaN(parsedAmount) && newDate) { // Check if newDate is not null
+            const newDate = parseDateFromDisplay(newDateDisplay);
+            if (!isNaN(parsedAmount) && newDate) {
                 const finalVal = entry.val < 0 ? -Math.abs(parsedAmount) : Math.abs(parsedAmount);
                 totalAmount = totalAmount - entry.val + finalVal;
                 entry.val = finalVal;
@@ -816,13 +903,11 @@
                 updateTotal();
                 renderHistory();
                 refreshStartView();
-            }
-            else {
+            } else {
                 alert('Proszę wprowadzić prawidłową kwotę i datę (DD MM RRRR).');
             }
         };
 
-        // Pomocnicza funkcja do gładkiego usuwania wiersza
         function animateRowOut(rowElement, callback) {
             rowElement.classList.remove('show');
             rowElement.addEventListener('transitionend', () => {
@@ -832,12 +917,11 @@
 
         function refreshStartView() {
             entryFieldsContainer.innerHTML = '';
-            addEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk + jest widoczny
-            subtractEntryButton.classList.remove('hidden'); // Upewnij się, że przycisk - jest widoczny
-            // Usunięto tworzenie wierszy dla zapisanych wpisów na stronie Start, aby była czysta.
+            addEntryButton.classList.remove('hidden');
+            subtractEntryButton.classList.remove('hidden');
         }
 
-        function createRow(initialEntry = null, isLocked = false, isSubtraction = false) { // initialEntry is an object {val, date, source, id}
+        function createRow(initialEntry = null, isLocked = false, isSubtraction = false) {
             const row = document.createElement('div');
             row.className = 'entry-row';
             if (initialEntry && initialEntry.id) row.dataset.id = initialEntry.id;
@@ -849,14 +933,12 @@
             amountInput.type = 'number';
             amountInput.step = '0.01';
             amountInput.placeholder = 'Kwota';
-            amountInput.setAttribute('inputmode', 'decimal'); // Klawiatura numeryczna z kropką/przecinkiem
-            amountInput.setAttribute('pattern', '[0-9]*'); // Wymuszenie klawiatury numerycznej na iOS
+            amountInput.setAttribute('inputmode', 'decimal');
 
             const dateInput = document.createElement('input');
             dateInput.type = 'text';
-            dateInput.setAttribute('inputmode', 'numeric'); // Klawiatura numeryczna dla daty
-            dateInput.setAttribute('pattern', '[0-9]*'); // Wymuszenie klawiatury numerycznej na iOS
-            dateInput.value = formatDateForDisplay(new Date().toISOString().split('T')[0]); // Domyślna dzisiejsza data w formacie DD MM RRRR
+            dateInput.setAttribute('inputmode', 'numeric');
+            dateInput.value = formatDateForDisplay(new Date().toISOString().split('T')[0]);
             
             const sourceInput = document.createElement('input');
             sourceInput.type = 'text';
@@ -867,7 +949,6 @@
             btn.textContent = 'Dodaj';
             let currentVal = initialEntry ? initialEntry.val : 0;
 
-            // Jeśli wczytujemy dane, blokujemy pole od razu
             if (isLocked) {
                 amountInput.value = Math.abs(initialEntry.val);
                 dateInput.value = formatDateForDisplay(initialEntry.date || new Date().toISOString().split('T')[0]);
@@ -877,8 +958,8 @@
                 dateInput.disabled = true;
                 sourceInput.disabled = true;
                 btn.textContent = 'Edytuj';
-                btn.style.backgroundColor = '#ffc107';
-                row.classList.add('show'); // Pokazuje wiersz od razu przy wczytywaniu
+                btn.style.backgroundColor = 'var(--accent-blue)';
+                row.classList.add('show');
             }
 
             let currentId = initialEntry ? initialEntry.id : null;
@@ -889,7 +970,7 @@
                     dateInput.disabled = false;
                     sourceInput.disabled = false;
                     btn.textContent = 'OK';
-                    btn.style.backgroundColor = '#28a745';
+                    btn.style.backgroundColor = 'var(--accent-primary)';
                     totalAmount -= currentVal;
                     const idx = savedEntries.findIndex(e => e.id === currentId);
                     if (idx > -1) savedEntries.splice(idx, 1);
@@ -900,10 +981,10 @@
 
                 const rawVal = parseFloat(amountInput.value);
                 const dateDisplay = dateInput.value;
-                const date = parseDateFromDisplay(dateDisplay); // Parse display format to ISO
+                const date = parseDateFromDisplay(dateDisplay);
                 const source = sourceInput.value.trim();
 
-                if (!isNaN(rawVal) && rawVal !== 0 && date) { // Check if date is not null
+                if (!isNaN(rawVal) && rawVal !== 0 && date) {
                     const val = isSubtraction ? -Math.abs(rawVal) : Math.abs(rawVal);
                     totalAmount += val;
                     currentVal = val;
@@ -913,7 +994,7 @@
                     dateInput.disabled = true;
                     sourceInput.disabled = true;
                     btn.textContent = 'Edytuj';
-                    btn.style.backgroundColor = '#ffc107';
+                    btn.style.backgroundColor = 'var(--accent-blue)';
                     isLocked = true;
 
                     const newId = row.dataset.id;
@@ -921,9 +1002,8 @@
                     savedEntries.push({ id: newId, val: val, date: date, source: source });
                     saveToStorage();
                     if (!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
-                    animateRowOut(row, () => { row.remove(); }); // Usuń wiersz po pomyślnym dodaniu
-                }
-                else {
+                    animateRowOut(row, () => { row.remove(); });
+                } else {
                     alert('Proszę wprowadzić prawidłową kwotę i datę.');
                 }
             };
@@ -933,43 +1013,27 @@
             dateInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
             sourceInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
 
-
             inputGroup.appendChild(amountInput);
             inputGroup.appendChild(dateInput);
             inputGroup.appendChild(sourceInput);
             inputGroup.appendChild(btn);
             
-            row.appendChild(inputGroup); // Append the input group to the row
-
+            row.appendChild(inputGroup);
             entryFieldsContainer.prepend(row);
 
-            // Animation for new rows
             if (!isLocked) {
-                // Use a small timeout to allow the browser to render the initial state (max-height: 0)
-                setTimeout(() => {
-                    row.classList.add('show');
-                }, 10);
+                setTimeout(() => { row.classList.add('show'); }, 10);
                 amountInput.focus();
             }
         }
 
-        // Inicjalizacja: dodaj zapisane wpisy do widoku i oblicz sumę
-        savedEntries.forEach(entry => {
-            totalAmount += entry.val;
-            // Wpisy są ładowane tylko do obliczenia sumy, nie są wyświetlane na stronie Start.
-        });
-        updateTotal();
-
         addEntryButton.addEventListener('click', () => {
             const activeInput = entryFieldsContainer.querySelector('.entry-row input:not(:disabled)');
-            
             if (activeInput) {
                 const activeRow = activeInput.closest('.entry-row');
-                // Jeśli to nowy wiersz (nie ma jeszcze ID w bazie), kliknięcie + go usuwa (chowa dodawanie)
                 if (!activeRow.dataset.id) {
                     animateRowOut(activeRow, () => { activeRow.remove(); });
                 } else {
-                    // Jeśli edytujemy stary wiersz, tylko ustawiamy na nim focus
                     activeInput.focus();
                 }
                 return;
@@ -979,7 +1043,6 @@
 
         subtractEntryButton.addEventListener('click', () => {
             const activeInput = entryFieldsContainer.querySelector('.entry-row input:not(:disabled)');
-            
             if (activeInput) {
                 const activeRow = activeInput.closest('.entry-row');
                 if (!activeRow.dataset.id) {
@@ -992,18 +1055,22 @@
             createRow(null, false, true);
         });
 
-        // Pobiera dane w formie zakodowanego ciągu
         function getEncodedData() {
-            const compactData = savedEntries.map(e => [e.id, e.val, e.date, e.source]);
+            const allEntriesData = {};
+            appSets.forEach(set => {
+                const raw = JSON.parse(localStorage.getItem('moneyEntries_' + set.id) || '[]');
+                allEntriesData[set.id] = raw.map(e => [e.id, e.val, e.date, e.source]);
+            });
+
             const exportPackage = {
-                entries: compactData,
+                sets: appSets,
+                allEntries: allEntriesData,
                 pin: localStorage.getItem('appPin') || '1109',
                 pinEnabled: localStorage.getItem('pinEnabled') !== 'false'
             };
             return btoa(unescape(encodeURIComponent(JSON.stringify(exportPackage))));
         }
 
-        // Funkcja kopiowania kodu
         window.copyDataString = () => {
             try {
                 const encoded = getEncodedData();
@@ -1017,7 +1084,6 @@
             }
         };
 
-        // Nowoczesne udostępnianie (Messenger, WhatsApp, Mail)
         window.shareDataCode = async () => {
             const encoded = getEncodedData();
             const shareData = {
@@ -1036,7 +1102,6 @@
             }
         };
 
-        // Funkcja importowania danych z tekstu
         window.importFromText = () => {
             const code = prompt("Wklej tutaj kod danych otrzymany z drugiego urządzenia:");
             if (!code) return;
@@ -1044,37 +1109,28 @@
                 const decoded = decodeURIComponent(escape(atob(code)));
                 const data = JSON.parse(decoded);
 
-                let entriesToImport = [];
-                let importedPin = null;
-                let importedPinEnabled = null;
-
-                if (Array.isArray(data)) {
-                    // Wsparcie dla starego formatu (sama lista wpisów)
-                    entriesToImport = data;
-                } else if (data && typeof data === 'object' && data.entries) {
-                    // Nowy format (wpisy + ustawienia PIN)
-                    entriesToImport = data.entries;
-                    importedPin = data.pin;
-                    importedPinEnabled = data.pinEnabled;
-                } else {
-                    throw new Error("Nieprawidłowy format");
-                }
-
-                if (confirm("Wykryto dane. Czy zastąpić obecną historię oraz ustawienia PIN?")) {
-                    // Obsługa nowego skróconego formatu oraz starego formatu dla kompatybilności
-                    if (entriesToImport.length > 0 && Array.isArray(entriesToImport[0])) {
-                        savedEntries = entriesToImport.map(item => ({
-                            id: item[0],
-                            val: item[1],
-                            date: item[2],
-                            source: item[3] || ''
-                        }));
-                    } else {
-                        savedEntries = entriesToImport;
+                if (confirm("Wykryto dane. Czy zastąpić obecne cele, ich historię oraz ustawienia PIN?")) {
+                    if (data.sets && data.allEntries) {
+                        appSets = data.sets;
+                        localStorage.setItem('appSets', JSON.stringify(appSets));
+                        Object.keys(data.allEntries).forEach(setId => {
+                            const compact = data.allEntries[setId];
+                            const formatted = compact.map(item => ({
+                                id: item[0], val: item[1], date: item[2], source: item[3] || ''
+                            }));
+                            localStorage.setItem('moneyEntries_' + setId, JSON.stringify(formatted));
+                        });
+                    } else if (Array.isArray(data) || data.entries) {
+                        let entriesToImport = Array.isArray(data) ? data : data.entries;
+                        let formatted = entriesToImport.map(item => Array.isArray(item) ? {
+                            id: item[0], val: item[1], date: item[2], source: item[3] || ''
+                        } : item);
+                        localStorage.setItem('moneyEntries_' + currentSetId, JSON.stringify(formatted));
                     }
-                    if (importedPin !== null) localStorage.setItem('appPin', importedPin);
-                    if (importedPinEnabled !== null) localStorage.setItem('pinEnabled', importedPinEnabled);
-                    saveToStorage();
+
+                    if (data.pin !== undefined) localStorage.setItem('appPin', data.pin);
+                    if (data.pinEnabled !== undefined) localStorage.setItem('pinEnabled', data.pinEnabled);
+
                     location.reload();
                 }
             } catch (e) { alert("Błędny kod danych!"); }
